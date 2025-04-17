@@ -53,15 +53,15 @@
     <!-- Dropdown -->
     <div class="relative">
       <button onclick="toogleOptionSearch()" id="dropdownBtn"
-        class="px-4 py-2 rounded-md bg-[#1c1c1c] text-[#f0eada] border bord24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        class="px-4 py-2 rounded-md bg-[#1c1c1c] text-[#f0eada] border border-[#3a3a3a] hover:bg-[#2c2c2c] flex items-center gap-2">
+         <span id="dropdownValue">CVEs</span>
+         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       <ul id="dropdownMenu"
         class="absolute mt-2 right-0 w-36 bg-[#1c1c1c] border border-[#3a3a3a] rounded-md shadow-md text-sm text-[#f0eada] hidden z-50">
-        <li><button onclick="selectOptionSearch('CVEs')"er-[#3a3a3a] hover:bg-[#2c2c2c] flex items-center gap-2">
-        <span id="dropdownValue">CVEs</span>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 
+        <li><button onclick="selectOptionSearch('CVEs')"
             class="w-full text-left px-4 py-2 hover:bg-[#2c2c2c]">CVEs</button></li>
         <li><button onclick="selectOptionSearch('Repositórios')"
             class="w-full text-left px-4 py-2 hover:bg-[#2c2c2c]">Repositórios</button></li>
@@ -666,7 +666,7 @@
       }, 500);
     });
 
-    carregarJsonComprimido('descriptions.json.gz');
+    carregarJsonComprimido('/index/descriptions.json.gz');
     getRepositories()
     carregarCWEMap()
     carregarScoreMap()
