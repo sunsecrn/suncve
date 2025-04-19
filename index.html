@@ -54,9 +54,9 @@
     <div class="relative">
       <button onclick="toogleOptionSearch()" id="dropdownBtn"
         class="px-4 py-2 rounded-md bg-[#1c1c1c] text-[#f0eada] border border-[#3a3a3a] hover:bg-[#2c2c2c] flex items-center gap-2">
-         <span id="dropdownValue">CVEs</span>
-         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        <span id="dropdownValue">CVEs</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       <ul id="dropdownMenu"
@@ -78,6 +78,8 @@
   <div id="resultado">
     <div class="col-span-full text-center text-sm text-[#c4bfb5]">Carregando base de dados...</div>
   </div>
+  <div id="paginacao" class="flex justify-center items-center gap-4 mt-3 mb-6 text-sm text-[#f0eada]"></div>
+
 
   <!-- Modal de Filtros -->
   <div id="filterModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4 sm:p-0">
@@ -147,7 +149,7 @@
           </div>
         </div>
 
-        <hr/>
+        <hr />
         <div>
           <p class="text-sm text-[#c4bfb5] mb-2">CVSS Score:</p>
           <div class="flex flex-wrap gap-2">
@@ -213,6 +215,12 @@
 
     const MAX_RESULTADOS = 20;
     const resultadoContainer = document.getElementById("resultado");
+
+    let paginaAtual = 1;
+    const resultadosPorPagina = MAX_RESULTADOS;
+    let resultadosFiltrados = [];
+    let resultadosRenderizados = 0;
+
 
     function getFiltrosSelecionados(grupo) {
       const botoes = document.querySelectorAll(`.toggle-btn[data-group="${grupo}"].active`);
@@ -334,91 +342,17 @@
       return (num / 1_000_000).toFixed(1).replace('.0', '') + 'M';
     }
 
-    async function buscarDescricoes(texto, filter = { cwe: [], score: [], options: [], langMain: [] }) {
-      resultadoContainer.className = "w-full max-w-4xl grid grid-cols-1 gap-6 mb-10";
+    async function renderPaginaAtual() {
       resultadoContainer.innerHTML = "";
-      //if (!texto.trim()) {
-      //  resultadoContainer.innerHTML = `<div class="col-span-full text-center text-sm text-[#c4bfb5]">Digite algo para buscar.</div>`;
-      //  return;
-      //}
+      const inicio = (paginaAtual - 1) * resultadosPorPagina;
+      const fim = inicio + resultadosPorPagina;
+      const pageItems = resultadosFiltrados.slice(inicio, fim);
 
-      const cvesPermitidosPorCWE = new Set();
-      const cvesPermitidosPorScore = new Set();
-      const cvesPermitidosLangMain = new Set();
-      var cvesPermitidosPorOptions = new Set();
-
-      // Coleta os CVEs permitidos a partir das CWEs selecionadas
-      if (filter.cwe.length > 0) {
-        filter.cwe.forEach(cwe => {
-          const relacionados = cweMap[cwe] || [];
-          relacionados.forEach(cve => cvesPermitidosPorCWE.add(cve));
-        });
-      }
-
-      if (filter.score.length > 0) {
-        filter.score.forEach(sc => {
-          const relacionados = scoreMap[sc] || [];
-          relacionados.forEach(cve => cvesPermitidosPorScore.add(cve));
-        });
-      }
-
-      if (filter.options.length > 0) {
-        const conjuntosPorFiltro = [];
-
-        filter.options.forEach(opt => {
-          const set = new Set();
-
-          if (opt === "Repositorie") {
-            Object.values(repositoriesCVEsJSON).forEach(repo => {
-              repo.listCVEs?.forEach(cve => set.add(cve));
-            });
-          }
-
-          if (opt === "Commit") {
-            Object.values(repositoriesCVEsJSON).forEach(repo => {
-              repo.commitsCVEs?.forEach(cve => set.add(cve));
-            });
-          }
-
-          if (opt === "Advisorie") {
-            cvesPocAdvisories.forEach(cve => set.add(cve));
-          }
-
-          if (opt === "POC") {
-            cvesPocAdvisories.forEach(cve => set.add(cve));
-            cvesPocListInGithub.forEach(cve => set.add(cve));
-          }
-
-          conjuntosPorFiltro.push(set);
-        });
-
-        // Faz interseção entre os filtros
-        if (conjuntosPorFiltro.length > 0) {
-          cvesPermitidosPorOptions = new Set(
-            [...conjuntosPorFiltro[0]].filter(cve =>
-              conjuntosPorFiltro.every(set => set.has(cve))
-            )
-          );
-        }
-      }
-
-      const encontrados = Object.entries(dadosJSON).filter(([chave, _]) =>
-        chave.toLowerCase().includes(texto.toLowerCase())
-      );
-
-      let resultadosRenderizados = 0;
-
-      for (const [chave, valor] of encontrados) {
-        for (const v of valor) {
-          if (filter.cwe.length > 0 && !cvesPermitidosPorCWE.has(v)) continue;  // esse CVE não está vinculado ao filtro CWE
-          if (filter.score.length > 0 && !cvesPermitidosPorScore.has(v)) continue;  // esse CVE não está vinculado ao filtro Score
-          if (filter.options.length > 0 && !cvesPermitidosPorOptions.has(v)) continue;  // esse CVE não está vinculado as opções
-
-          const infoCVE = await getInfoCVE(v);
-          const cvssScore = parseFloat(infoCVE.cvss?.[0]?.baseScore || 0);
+      let index = 0;
+      for (const cveId of pageItems) {
+        const infoCVE = await getInfoCVE(cveId);
+        const cvssScore = parseFloat(infoCVE.cvss?.[0]?.baseScore || 0);
           const cwe = infoCVE.cwe || "";
-
-          if (resultadosRenderizados >= MAX_RESULTADOS) break;
 
           // Define cores
           let cvssColor = "#a8a29e", borderColor = "#3f3f46";
@@ -533,14 +467,133 @@
           resultadoContainer.appendChild(card);
           resultadosRenderizados++;
 
-          if (resultadosRenderizados >= MAX_RESULTADOS) break;
-        }
-        if (resultadosRenderizados >= MAX_RESULTADOS) break;
       }
 
-      if (resultadosRenderizados === 0) {
-        resultadoContainer.innerHTML = `<div class="col-span-full text-center text-sm text-red-400">Nenhum resultado com os filtros selecionados.</div>`;
+      const totalPaginas = Math.ceil(resultadosFiltrados.length / resultadosPorPagina);
+      renderizarPaginacao(totalPaginas);
+    }
+
+    function renderizarPaginacao(totalPaginas) {
+      const paginacaoEl = document.getElementById("paginacao");
+      paginacaoEl.innerHTML = "";
+
+      if (totalPaginas <= 1) return;
+
+      const anterior = document.createElement("button");
+      anterior.innerText = "◀ Anterior";
+      anterior.disabled = paginaAtual === 1;
+      anterior.className = "px-3 py-1 bg-[#2a2a2a] rounded hover:bg-[#3a3a3a] disabled:opacity-30";
+      anterior.onclick = () => {
+        paginaAtual--;
+        renderPaginaAtual();
+      };
+
+      const proximo = document.createElement("button");
+      proximo.innerText = "Próximo ▶";
+      proximo.disabled = paginaAtual === totalPaginas;
+      proximo.className = "px-3 py-1 bg-[#2a2a2a] rounded hover:bg-[#3a3a3a] disabled:opacity-30";
+      proximo.onclick = () => {
+        paginaAtual++;
+        renderPaginaAtual();
+      };
+
+      paginacaoEl.appendChild(anterior);
+      paginacaoEl.appendChild(document.createTextNode(`Página ${paginaAtual} de ${totalPaginas}`));
+      paginacaoEl.appendChild(proximo);
+    }
+
+    async function buscarDescricoes(texto, filter = { cwe: [], score: [], options: [], langMain: [] }) {
+      resultadoContainer.className = "w-full max-w-4xl grid grid-cols-1 gap-6 mb-10";
+      resultadoContainer.innerHTML = "";
+      //if (!texto.trim()) {
+      //  resultadoContainer.innerHTML = `<div class="col-span-full text-center text-sm text-[#c4bfb5]">Digite algo para buscar.</div>`;
+      //  return;
+      //}
+
+      const cvesPermitidosPorCWE = new Set();
+      const cvesPermitidosPorScore = new Set();
+      const cvesPermitidosLangMain = new Set();
+      var cvesPermitidosPorOptions = new Set();
+
+      // Coleta os CVEs permitidos a partir das CWEs selecionadas
+      if (filter.cwe.length > 0) {
+        filter.cwe.forEach(cwe => {
+          const relacionados = cweMap[cwe] || [];
+          relacionados.forEach(cve => cvesPermitidosPorCWE.add(cve));
+        });
       }
+
+      if (filter.score.length > 0) {
+        filter.score.forEach(sc => {
+          const relacionados = scoreMap[sc] || [];
+          relacionados.forEach(cve => cvesPermitidosPorScore.add(cve));
+        });
+      }
+
+      if (filter.options.length > 0) {
+        const conjuntosPorFiltro = [];
+
+        filter.options.forEach(opt => {
+          const set = new Set();
+
+          if (opt === "Repositorie") {
+            Object.values(repositoriesCVEsJSON).forEach(repo => {
+              repo.listCVEs?.forEach(cve => set.add(cve));
+            });
+          }
+
+          if (opt === "Commit") {
+            Object.values(repositoriesCVEsJSON).forEach(repo => {
+              repo.commitsCVEs?.forEach(cve => set.add(cve));
+            });
+          }
+
+          if (opt === "Advisorie") {
+            cvesPocAdvisories.forEach(cve => set.add(cve));
+          }
+
+          if (opt === "POC") {
+            cvesPocAdvisories.forEach(cve => set.add(cve));
+            cvesPocListInGithub.forEach(cve => set.add(cve));
+          }
+
+          conjuntosPorFiltro.push(set);
+        });
+
+        // Faz interseção entre os filtros
+        if (conjuntosPorFiltro.length > 0) {
+          cvesPermitidosPorOptions = new Set(
+            [...conjuntosPorFiltro[0]].filter(cve =>
+              conjuntosPorFiltro.every(set => set.has(cve))
+            )
+          );
+        }
+      }
+
+      const encontrados = Object.entries(dadosJSON).filter(([chave, _]) =>
+        chave.toLowerCase().includes(texto.toLowerCase())
+      );
+
+      resultadosFiltrados = [];
+      for (const [chave, valor] of encontrados) {
+        for (const v of valor) {
+          if (filter.cwe.length > 0 && !cvesPermitidosPorCWE.has(v)) continue;
+          if (filter.score.length > 0 && !cvesPermitidosPorScore.has(v)) continue;
+          if (filter.options.length > 0 && !cvesPermitidosPorOptions.has(v)) continue;
+
+          resultadosFiltrados.push(v);
+        }
+      }
+
+      if (resultadosFiltrados.length === 0) {
+        resultadoContainer.innerHTML = `<div class="col-span-full text-center text-sm text-red-400">Nenhum resultado com os filtros selecionados.</div>`;
+        document.getElementById("paginacao").innerHTML = "";
+        return;
+      }
+
+      paginaAtual = 1;
+      renderPaginaAtual();
+
     }
 
     async function buscarRepositories(texto, filter = { lang: [] }) {
