@@ -4,6 +4,7 @@ let optionSearch = "CVEs";
 let dadosJSON = {};
 let cweMap = {};
 let scoreMap = {};
+let cweDetailsMap = {};
 let CVEsPocList = []
 let repositoriesJSON = {}
 let repositoriesCVEsJSON = {}
@@ -21,3 +22,4 @@ carregarJsonComprimido('/index/descriptions.json.gz');
 getRepositories()
 carregarCWEMap()
 carregarScoreMap()
+carregarCweDetailsMap()

@@ -24,6 +24,37 @@ document.addEventListener("click", (e) => {
     }
 });
 
+document.getElementById("busca-cwe").addEventListener("input", e => {
+    allCweKeys = Object.keys(cweMap);
+    const termo = e.target.value.toLowerCase();
+    const container = document.getElementById("cwe-results");
+    container.innerHTML = "";
+
+    const encontrados = allCweKeys.filter(cwe =>
+        cwe.toLowerCase().includes(termo) ||
+        cweDetailsMap[cwe]?.toLowerCase().includes(termo)
+    );
+
+    if (encontrados.length === 0) {
+        container.innerHTML = `<p class="text-xs text-[#888] p-2">Nenhuma CWE encontrada.</p>`;
+        return;
+    }
+
+    encontrados.slice(0, 100).forEach((cwe, index) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = `toggle-cwe text-sm px-3 py-2 cursor-pointer transition-all duration-200 ${index % 2 === 0 ? "bg-[#1f1f1f]" : "bg-[#2a2a2a]"
+            }`;
+        wrapper.setAttribute("data-group", "cwe");
+        wrapper.textContent = `${cwe}: ${cweDetailsMap[cwe] || "Sem descrição"}`;
+
+        wrapper.addEventListener("click", () => {
+            wrapper.classList.toggle("active");
+            searchDescriptions(document.getElementById("busca").value, { cwe: getSelectedFilters("cwe"), score: getSelectedFilters("score"), options: getSelectedFilters("options"), langMain: getSelectedFilters("cve_lang_main") });
+        });
+        container.appendChild(wrapper);
+    });
+});
+
 function selectOptionSearch(value) {
     document.getElementById("dropdownValue").textContent = value;
     document.getElementById("dropdownMenu").classList.add("hidden");
@@ -252,3 +283,21 @@ async function searchRepositories(texto, filter = { lang: [] }) {
         resultadoContainer.innerHTML = `<div class="col-span-full text-center text-sm text-red-400">Nenhum repositório encontrada.</div>`;
     }
 }
+
+function popularLinguagens(langs, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    langs.forEach(lang => {
+        const btn = document.createElement("button");
+        btn.className = "toggle-btn";
+        btn.setAttribute("data-group", containerId === "repo-lang-list" ? "lang" : "cve_lang_main");
+        btn.textContent = lang;
+        container.appendChild(btn);
+    });
+}
+
+// Exemplo de linguagens populares
+const linguagensComuns = ["JavaScript", "Python", "Ruby", "PHP", "Go", "Java", "C#", "Rust", "C++", "TypeScript"];
+popularLinguagens(linguagensComuns, "cve-lang-list");
+popularLinguagens(linguagensComuns, "repo-lang-list");

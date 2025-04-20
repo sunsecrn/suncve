@@ -33,6 +33,29 @@
       color: #1c1c1c;
       border-color: #f0eada;
     }
+
+    /* Item padrão */
+    .toggle-cwe {
+      border-left: 4px solid transparent;
+      transition: background-color 0.2s, border-left 0.2s, color 0.2s;
+    }
+
+    /* Selecionado (ativo) */
+    .toggle-cwe.active {
+      background-color: #1f2937;
+      /* slate-800 */
+      border-left: 4px solid #38bdf8;
+      /* sky-400 */
+      color: #f8fafc;
+      /* slate-50 */
+    }
+
+    /* Hover */
+    .toggle-cwe:hover {
+      background-color: #2a2e35;
+      /* dark-slate */
+      color: #e2e8f0;
+    }
   </style>
 </head>
 
@@ -82,74 +105,27 @@
 
 
   <!-- Modal de Filtros -->
-  <div id="filterModal" class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4 sm:p-0">
-    <div class="bg-[#1c1c1c] w-full max-w-md p-6 rounded-lg shadow-lg text-[#f0eada] relative">
+  <div id="filterModal"
+    class="fixed inset-0 bg-black bg-opacity-70 hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-[#1c1c1c] w-full max-w-2xl p-6 rounded-lg shadow-lg text-[#f0eada] relative">
+
+      <!-- Close -->
       <button onclick="toggleModal()" class="absolute top-2 right-3 text-[#f0eada] text-2xl font-bold">&times;</button>
       <h2 class="text-2xl font-semibold mb-4">Filtros</h2>
 
-      <!-- Filtros CVEs -->
+      <!-- CVE Filters -->
       <div id="filtros-cves" class="space-y-4">
+
+        <!-- 🔎 Buscar CWE -->
         <div>
-          <p class="text-sm text-[#c4bfb5] mb-2">CWEs por categoria:</p>
-
-          <!-- 🔓 Acesso indevido -->
-          <div class="mb-4">
-            <p class="text-xs font-semibold text-[#a1a1aa] mb-1">Acesso Indevido</p>
-            <div class="flex flex-wrap gap-2">
-              <button class="toggle-btn" data-group="cwe">CWE-639</button> <!-- IDOR -->
-              <button class="toggle-btn" data-group="cwe">CWE-285</button> <!-- Improper Authorization -->
-              <button class="toggle-btn" data-group="cwe">CWE-284</button> <!-- Improper Access Control -->
-              <button class="toggle-btn" data-group="cwe">CWE-287</button> <!-- Improper Authentication -->
-            </div>
-          </div>
-
-          <!-- 🧪 Injeções -->
-          <div class="mb-4">
-            <p class="text-xs font-semibold text-[#a1a1aa] mb-1">Injeções</p>
-            <div class="flex flex-wrap gap-2">
-              <button class="toggle-btn" data-group="cwe">CWE-79</button> <!-- XSS -->
-              <button class="toggle-btn" data-group="cwe">CWE-89</button> <!-- SQL Injection -->
-              <button class="toggle-btn" data-group="cwe">CWE-77</button> <!-- Command Injection -->
-              <button class="toggle-btn" data-group="cwe">CWE-74</button> <!-- XSS Alternate -->
-            </div>
-          </div>
-
-          <!-- 📂 File / Path -->
-          <div class="mb-4">
-            <p class="text-xs font-semibold text-[#a1a1aa] mb-1">LFI, Path Traversal & File Access</p>
-            <div class="flex flex-wrap gap-2">
-              <button class="toggle-btn" data-group="cwe">CWE-22</button> <!-- Path Traversal -->
-              <button class="toggle-btn" data-group="cwe">CWE-23</button> <!-- Relative Path Traversal -->
-              <button class="toggle-btn" data-group="cwe">CWE-36</button> <!-- Absolute Path Traversal -->
-              <button class="toggle-btn" data-group="cwe">CWE-73</button> <!-- External Control of File Name -->
-              <button class="toggle-btn" data-group="cwe">CWE-552</button>
-              <!-- Files or Directories Exposed to Wrong Party -->
-            </div>
-          </div>
-
-          <!-- 🔐 Autenticação & Sessão -->
-          <div class="mb-4">
-            <p class="text-xs font-semibold text-[#a1a1aa] mb-1">Sessão e Autenticação</p>
-            <div class="flex flex-wrap gap-2">
-              <button class="toggle-btn" data-group="cwe">CWE-798</button> <!-- Hardcoded Credentials -->
-              <button class="toggle-btn" data-group="cwe">CWE-311</button> <!-- Missing Encryption -->
-              <button class="toggle-btn" data-group="cwe">CWE-614</button> <!-- Sensitive Data in GET -->
-            </div>
-          </div>
-
-          <!-- 🧱 Outras críticas -->
-          <div class="mb-4">
-            <p class="text-xs font-semibold text-[#a1a1aa] mb-1">Outras Comuns</p>
-            <div class="flex flex-wrap gap-2">
-              <button class="toggle-btn" data-group="cwe">CWE-119</button> <!-- Buffer Overflow -->
-              <button class="toggle-btn" data-group="cwe">CWE-20</button> <!-- Input Validation -->
-              <button class="toggle-btn" data-group="cwe">CWE-200</button> <!-- Information Exposure -->
-              <button class="toggle-btn" data-group="cwe">CWE-352</button> <!-- CSRF -->
-            </div>
-          </div>
+          <label for="busca-cwe" class="text-sm text-[#c4bfb5] block mb-2">Buscar CWE por código ou descrição:</label>
+          <input type="text" id="busca-cwe" placeholder="ex: XSS, SQL Injection, CWE-79"
+            class="w-full px-3 py-2 rounded bg-[#0f0f0f] text-[#f0eada] border border-[#3a3a3a] mb-2" autocomplete="off"
+            autocorrect="off" autocapitalize="off" spellcheck="false">
+          <div id="cwe-results" class="space-y-1 max-h-60 overflow-y-auto rounded border border-[#2c2c2c]"></div>
         </div>
 
-        <hr />
+        <!-- CVSS -->
         <div>
           <p class="text-sm text-[#c4bfb5] mb-2">CVSS Score:</p>
           <div class="flex flex-wrap gap-2">
@@ -160,8 +136,9 @@
           </div>
         </div>
 
+        <!-- Options -->
         <div>
-          <p class="text-sm text-[#c4bfb5] mb-2">Options:</p>
+          <p class="text-sm text-[#c4bfb5] mb-2">Opções Extras:</p>
           <div class="flex flex-wrap gap-2">
             <button class="toggle-btn" data-group="options">Repositorie</button>
             <button class="toggle-btn" data-group="options">Advisorie</button>
@@ -170,29 +147,24 @@
           </div>
         </div>
 
+        <!-- Linguagem principal do CVE -->
         <div>
-          <p class="text-sm text-[#c4bfb5] mb-2">CVE Language Main:</p>
-          <div class="flex flex-wrap gap-2">
-            <button class="toggle-btn" data-group="cve_lang_main">JavaScript</button>
-            <button class="toggle-btn" data-group="cve_lang_main">Python</button>
-            <button class="toggle-btn" data-group="cve_lang_main">Ruby</button>
-            <button class="toggle-btn" data-group="cve_lang_main">PHP</button>
+          <p class="text-sm text-[#c4bfb5] mb-2">Linguagem Principal (CVE):</p>
+          <div id="cve-lang-list" class="flex flex-wrap gap-2">
+            <!-- Preenchido dinamicamente -->
           </div>
         </div>
-
       </div>
 
-      <!-- Filtros Repositórios -->
-      <div id="filtros-repos" class="space-y-4 hidden">
-        <p class="text-sm text-[#c4bfb5] mb-2">Linguagens:</p>
-        <div class="flex flex-wrap gap-2">
-          <button class="toggle-btn" data-group="lang">JavaScript</button>
-          <button class="toggle-btn" data-group="lang">Python</button>
-          <button class="toggle-btn" data-group="lang">Ruby</button>
-          <button class="toggle-btn" data-group="lang">PHP</button>
+      <!-- Filtros de Repositório -->
+      <div id="filtros-repos" class="space-y-4 hidden mt-4">
+        <p class="text-sm text-[#c4bfb5] mb-2">Linguagens do Repositório:</p>
+        <div id="repo-lang-list" class="flex flex-wrap gap-2">
+          <!-- Preenchido dinamicamente -->
         </div>
       </div>
 
+      <!-- Aplicar -->
       <div class="mt-6 text-right">
         <button onclick="toggleModal()" class="px-4 py-2 bg-[#f0eada] text-black rounded hover:bg-[#e0d9c9]">
           Aplicar Filtros
@@ -200,6 +172,7 @@
       </div>
     </div>
   </div>
+
 
   <!-- Scripts -->
   <script src="/assets/js/search.js"></script>

@@ -20,10 +20,21 @@ async function carregarCWEMap() {
 async function carregarScoreMap() {
     try {
         const response = await fetch("/index/score.json");
-        if (!response.ok) throw new Error("Falha ao carregar cwes.json");
+        if (!response.ok) throw new Error("Falha ao carregar score.json");
         scoreMap = await response.json();
     } catch (e) {
-        console.error("Erro ao carregar cwes.json:", e);
+        console.error("Erro ao carregar score.json:", e);
         scoreMap = {};
+    }
+}
+
+async function carregarCweDetailsMap() {
+    try {
+        const response = await fetch("/index/cwe_details.json");
+        if (!response.ok) throw new Error("Falha ao carregar cwe_details.json");
+        cweDetailsMap = await response.json();
+    } catch (e) {
+        console.error("Erro ao carregar cwe_details.json:", e);
+        cweDetailsMap = {};
     }
 }

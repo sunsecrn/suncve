@@ -20,6 +20,8 @@ function formatNumbers(num) {
 }
 
 function getSelectedFilters(group) {
-    const buttons = document.querySelectorAll(`.toggle-btn[data-group="${group}"].active`);
-    return Array.from(buttons).map(btn => btn.textContent.trim());
+    const buttons = document.querySelectorAll(`[data-group="${group}"].active`);
+    return Array.from(buttons).map(btn =>
+        btn.textContent.trim().split(":")[0] // só pega o CWE-ID (ex: CWE-79)
+    );
 }
