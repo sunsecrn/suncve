@@ -63,6 +63,17 @@ async function searchDescriptions(texto, filter = { cwe: [], score: [], options:
         });
     }
 
+    if (filter.langMain.length > 0) {
+        filter.langMain.forEach(lm => {
+            Object.entries(repositoriesJSON).forEach(([key, value]) => {
+                if (value.language === lm) {
+                    const relacionados = repositoriesCVEsJSON[key]?.listCVEs || [];
+                    relacionados.forEach(cve => cvesPermitidosLangMain.add(cve));
+                }
+            });
+        });
+    }
+
     if (filter.score.length > 0) {
         filter.score.forEach(sc => {
             const relacionados = scoreMap[sc] || [];
@@ -120,6 +131,7 @@ async function searchDescriptions(texto, filter = { cwe: [], score: [], options:
             if (filter.cwe.length > 0 && !cvesPermitidosPorCWE.has(v)) continue;
             if (filter.score.length > 0 && !cvesPermitidosPorScore.has(v)) continue;
             if (filter.options.length > 0 && !cvesPermitidosPorOptions.has(v)) continue;
+            if (filter.langMain.length > 0 && !cvesPermitidosLangMain.has(v)) continue;
 
             resultadosFiltrados.push(v);
         }
