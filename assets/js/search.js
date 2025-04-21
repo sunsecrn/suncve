@@ -1,3 +1,15 @@
+const webServerLanguages = [
+    "HTML",
+    "CSS",
+    "PHP",
+    "Twig",
+    "Blade",
+    "Smarty",
+    "ERB",
+    "Jinja2"
+];
+const linguagensComuns = ["JavaScript", "Python", "Ruby", "PHP", "Go", "Java", "C#", "Rust", "C++", "TypeScript"];
+
 let debounceTimer;
 document.getElementById("busca").addEventListener("input", (e) => {
     clearTimeout(debounceTimer);
@@ -132,6 +144,16 @@ async function searchDescriptions(texto, filter = { cwe: [], score: [], options:
 
             if (opt === "Advisorie") {
                 cvesPocAdvisories.forEach(cve => set.add(cve));
+            }
+
+            if (opt === "WEB Apps") {
+                Object.entries(repositoriesJSON).forEach(([key, value]) => {
+                    const langs = Object.keys(value.langs);
+                    if (webServerLanguages.some(lang => langs.includes(lang))) {
+                        const relacionados = repositoriesCVEsJSON[key]?.listCVEs || [];
+                        relacionados.forEach(cve => set.add(cve));
+                    }
+                });
             }
 
             if (opt === "POC") {
@@ -298,6 +320,5 @@ function popularLinguagens(langs, containerId) {
 }
 
 // Exemplo de linguagens populares
-const linguagensComuns = ["JavaScript", "Python", "Ruby", "PHP", "Go", "Java", "C#", "Rust", "C++", "TypeScript"];
 popularLinguagens(linguagensComuns, "cve-lang-list");
 popularLinguagens(linguagensComuns, "repo-lang-list");
