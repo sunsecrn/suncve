@@ -8,7 +8,7 @@ async function carregarJsonComprimido(url) {
 
 async function carregarCWEMap() {
     try {
-        const response = await fetch("/index/cwes.json");
+        const response = await fetch("/suncve/index/cwes.json");
         if (!response.ok) throw new Error("Falha ao carregar cwes.json");
         cweMap = await response.json();
     } catch (e) {
@@ -19,7 +19,7 @@ async function carregarCWEMap() {
 
 async function carregarScoreMap() {
     try {
-        const response = await fetch("/index/score.json");
+        const response = await fetch("/suncve/index/score.json");
         if (!response.ok) throw new Error("Falha ao carregar score.json");
         scoreMap = await response.json();
     } catch (e) {
@@ -30,7 +30,7 @@ async function carregarScoreMap() {
 
 async function carregarCweDetailsMap() {
     try {
-        const response = await fetch("/index/cwe_details.json");
+        const response = await fetch("/suncve/index/cwe_details.json");
         if (!response.ok) throw new Error("Falha ao carregar cwe_details.json");
         cweDetailsMap = await response.json();
     } catch (e) {
