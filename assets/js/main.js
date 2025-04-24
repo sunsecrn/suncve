@@ -18,7 +18,7 @@ let paginaAtual = 1;
 const resultadoContainer = document.getElementById("resultado");
 
 
-carregarJsonComprimido('/index/descriptions.json.gz');
+carregarJsonComprimido('/suncve/index/descriptions.json.gz');
 getRepositories()
 carregarCWEMap()
 carregarScoreMap()
