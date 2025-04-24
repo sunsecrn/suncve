@@ -1,6 +1,6 @@
 async function getInfoCVE(cveID) {
     try {
-        const response = await fetch(`/cves/${cveID}.json`);
+        const response = await fetch(`/suncve/cves/${cveID}.json`);
         if (!response.ok) return {};
         const data = await response.json();
         return data;
