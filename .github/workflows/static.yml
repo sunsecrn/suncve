@@ -35,7 +35,8 @@ jobs:
       - name: Create dist
         run: |
               mkdir dist
-              mv !(dist) dist
+              mv assets index cves index.html dist
+              
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
