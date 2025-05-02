@@ -279,7 +279,7 @@ async function searchRepositories(texto, filter = { lang: [], repoLength: 0 }) {
                 </div>
                 <ul class="cve-list hidden mt-2 ml-2 text-xs text-[#e5e5e5] list-disc pl-4">
                   ${(repositoriesCVEsJSON[chave]?.listCVEs || [])
-                    .map(cve => `<li><a href="/cves/${cve}.json" target="_blank" class="text-[#60a5fa] hover:underline">${cve}</a></li>`)
+                    .map(cve => `<li><a href="/suncve/cves/${cve}.json" target="_blank" class="text-[#60a5fa] hover:underline">${cve}</a></li>`)
                     .join('')
                 }
                 </ul>
@@ -290,7 +290,7 @@ async function searchRepositories(texto, filter = { lang: [], repoLength: 0 }) {
                 </div>
                 <ul class="commit-list hidden mt-2 ml-2 text-xs text-[#e5e5e5] list-disc pl-4">
                   ${(repositoriesCVEsJSON[chave]?.commitsCVEs || [])
-                    .map(url => `<li><a href="/cves/${url}.json" target="_blank" class="text-[#60a5fa] hover:underline">${url.split('/').pop().slice(0, 8)}</a></li>`)
+                    .map(url => `<li><a href="/suncve/cves/${url}.json" target="_blank" class="text-[#60a5fa] hover:underline">${url.split('/').pop().slice(0, 8)}</a></li>`)
                     .join('')
                 }
                 </ul>

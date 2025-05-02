@@ -1,6 +1,6 @@
 async function getInfoCVE(cveID) {
     try {
-        const response = await fetch(`/cves/${cveID}.json`);
+        const response = await fetch(`${pathRoot}/cves/${cveID}.json`);
         if (!response.ok) return {};
         const data = await response.json();
         return data;
@@ -11,19 +11,19 @@ async function getInfoCVE(cveID) {
 
 async function getRepositories() {
     try {
-        var response = await fetch("/index/repositories.json");
+        var response = await fetch(pathRoot+"/index/repositories.json");
         if (!response.ok) return {};
         repositoriesJSON = await response.json();
 
-        response = await fetch("/index/cves_repositories.json");
+        response = await fetch(pathRoot+"/index/cves_repositories.json");
         if (!response.ok) return {};
         repositoriesCVEsJSON = await response.json();
 
-        response = await fetch("/index/cves_poc_advisories.json");
+        response = await fetch(pathRoot+"/index/cves_poc_advisories.json");
         if (!response.ok) return {};
         cvesPocAdvisories = await response.json();
 
-        response = await fetch("/index/cves_poc_list_in_github.json");
+        response = await fetch(pathRoot+"/index/cves_poc_list_in_github.json");
         if (!response.ok) return {};
         cvesPocListInGithub = await response.json();
 

@@ -14,11 +14,12 @@ let resultadosFiltrados = [];
 let exportDataValues = [];
 let resultadosRenderizados = 0;
 let paginaAtual = 1;
+let pathRoot = "/suncve"
 
 const resultadoContainer = document.getElementById("resultado");
 
 
-carregarJsonComprimido('/index/descriptions.json.gz');
+carregarJsonComprimido(pathRoot+'/index/descriptions.json.gz');
 getRepositories()
 carregarCWEMap()
 carregarScoreMap()
