@@ -13,7 +13,7 @@
   <style>
     body {
       font-family: 'Share Tech Mono', monospace;
-      background-image: url('/suncve/assets/imgs/cubes.png');
+      background-image: url('/assets/imgs/cubes.png');
       background-color: #0d0d0d;
     }
 
@@ -57,13 +57,16 @@
       color: #e2e8f0;
     }
   </style>
+  
+    <base href="http://sunsec.net/suncve/" />
+
 </head>
 
 <body class="text-[#f0eada] min-h-screen flex flex-col items-center px-4">
 
   <!-- Cabeçalho com logo -->
   <header class="w-full max-w-6xl py-8 flex flex-col items-center text-center">
-    <img src="/suncve/assets/imgs/sunsec.png" alt="Logo Sunsec" class="w-24 h-24 mb-4 rounded-full" />
+    <img src="/assets/imgs/sunsec.png" alt="Logo Sunsec" class="w-24 h-24 mb-4 rounded-full" />
     <h1 class="text-4xl font-bold tracking-wider">SUNCVE</h1>
     <p class="text-sm text-[#c4bfb5] mt-1">Rastreando CVEs, commits e PoCs na bala.</p>
   </header>
@@ -95,6 +98,19 @@
       class="px-4 py-2 rounded-md bg-[#f0eada] text-black font-semibold hover:bg-[#e0d9c9] transition">
       Filtros
     </button>
+
+    <!-- Botão para exportar repositórios -->
+    <button onclick="exportData()"
+      class="px-4 py-2 rounded-md bg-[#1c1c1c] text-[#f0eada] border border-[#3a3a3a] hover:bg-[#2c2c2c] flex items-center gap-2">
+      <!-- Ícone de download -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-download">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    </button>
+
   </div>
 
   <!-- Resultados -->
@@ -163,6 +179,13 @@
         <div id="repo-lang-list" class="flex flex-wrap gap-2">
           <!-- Preenchido dinamicamente -->
         </div>
+        <div class="flex flex-wrap gap-2">
+          <!--Input para o usuário selecionar o tamanho máximo-->
+          <label for="repo-length" class="text-sm text-[#c4bfb5] mb-2">Tamanho máximo do repositório (em MB)</label>
+          <input type="number" id="repo-length" placeholder="ex: 1000"
+            class="w-full px-3 py-2 rounded bg-[#0f0f0f] text-[#f0eada] border border-[#3a3a3a] mb-2" autocomplete="off"
+            autocorrect="off" autocapitalize="off" spellcheck="false" onchange="selectOptionSearch('Repositórios')">
+        </div>
       </div>
 
       <!-- Aplicar -->
@@ -176,12 +199,12 @@
 
 
   <!-- Scripts -->
-  <script src="/suncve/assets/js/search.js"></script>
-  <script src="/suncve/assets/js/pagination.js"></script>
-  <script src="/suncve/assets/js/tooltip.js"></script>
-  <script src="/suncve/assets/js/load.js"></script>
-  <script src="/suncve/assets/js/getdata.js"></script>
-  <script src="/suncve/assets/js/main.js"></script>
+  <script src="/assets/js/search.js"></script>
+  <script src="/assets/js/pagination.js"></script>
+  <script src="/assets/js/tooltip.js"></script>
+  <script src="/assets/js/load.js"></script>
+  <script src="/assets/js/getdata.js"></script>
+  <script src="/assets/js/main.js"></script>
 </body>
 
 </html>

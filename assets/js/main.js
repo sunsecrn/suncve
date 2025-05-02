@@ -11,14 +11,14 @@ let repositoriesCVEsJSON = {}
 let cvesPocListInGithub = []
 let cvesPocAdvisories = []
 let resultadosFiltrados = [];
-
+let exportDataValues = [];
 let resultadosRenderizados = 0;
 let paginaAtual = 1;
 
 const resultadoContainer = document.getElementById("resultado");
 
 
-carregarJsonComprimido('/suncve/index/descriptions.json.gz');
+carregarJsonComprimido('/index/descriptions.json.gz');
 getRepositories()
 carregarCWEMap()
 carregarScoreMap()

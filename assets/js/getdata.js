@@ -1,6 +1,6 @@
 async function getInfoCVE(cveID) {
     try {
-        const response = await fetch(`/suncve/cves/${cveID}.json`);
+        const response = await fetch(`/cves/${cveID}.json`);
         if (!response.ok) return {};
         const data = await response.json();
         return data;
@@ -11,19 +11,19 @@ async function getInfoCVE(cveID) {
 
 async function getRepositories() {
     try {
-        var response = await fetch("/suncve/index/repositories.json");
+        var response = await fetch("/index/repositories.json");
         if (!response.ok) return {};
         repositoriesJSON = await response.json();
 
-        response = await fetch("/suncve/index/cves_repositories.json");
+        response = await fetch("/index/cves_repositories.json");
         if (!response.ok) return {};
         repositoriesCVEsJSON = await response.json();
 
-        response = await fetch("/suncve/index/cves_poc_advisories.json");
+        response = await fetch("/index/cves_poc_advisories.json");
         if (!response.ok) return {};
         cvesPocAdvisories = await response.json();
 
-        response = await fetch("/suncve/index/cves_poc_list_in_github.json");
+        response = await fetch("/index/cves_poc_list_in_github.json");
         if (!response.ok) return {};
         cvesPocListInGithub = await response.json();
 
@@ -32,3 +32,16 @@ async function getRepositories() {
     }
 }
 
+function exportData() {
+    const blob = new Blob([exportDataValues.join("\n")], { type: "text/plain" });   
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${optionSearch.toLowerCase()}.txt`;   
+    if (optionSearch === "Repositórios") {
+        link.download = `repositorios.txt`;
+    } 
+
+    link.click();
+    URL.revokeObjectURL(link.href);
+}
