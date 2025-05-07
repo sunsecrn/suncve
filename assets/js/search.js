@@ -18,7 +18,7 @@ document.getElementById("busca").addEventListener("input", (e) => {
             searchDescriptions(e.target.value, { cwe: getSelectedFilters("cwe"), score: getSelectedFilters("score"), options: getSelectedFilters("options"), langMain: getSelectedFilters("cve_lang_main") });
         }
         if (optionSearch == "Repositórios") {
-            searchRepositories(e.target.value, { lang: getSelectedFilters("lang"), repoLength: parseInt(document.querySelector("#repo-length").value) || 0 });
+            searchRepositories(e.target.value, { lang: getSelectedFilters("lang"), webserver: getSelectedFilters("options_repo").length, repoLength: parseInt(document.querySelector("#repo-length").value) || 0 });
         }
     }, 500);
 });
@@ -31,7 +31,7 @@ document.addEventListener("click", (e) => {
             searchDescriptions(document.getElementById("busca").value, { cwe: getSelectedFilters("cwe"), score: getSelectedFilters("score"), options: getSelectedFilters("options"), langMain: getSelectedFilters("cve_lang_main") });
         }
         if (optionSearch == "Repositórios") {
-            searchRepositories(document.getElementById("busca").value, { lang: getSelectedFilters("lang"), repoLength: parseInt(document.querySelector("#repo-length").value) || 0 });
+            searchRepositories(document.getElementById("busca").value, { lang: getSelectedFilters("lang"), webserver: getSelectedFilters("options_repo").length, repoLength: parseInt(document.querySelector("#repo-length").value) || 0 });
         }
     }
 });
@@ -81,7 +81,7 @@ function selectOptionSearch(value) {
     if (optionSearch === "CVEs") {
         searchDescriptions(document.getElementById("busca").value, { cwe: getSelectedFilters("cwe"), score: getSelectedFilters("score"), options: getSelectedFilters("options"), langMain: getSelectedFilters("cve_lang_main") });
     } else {
-        searchRepositories(document.getElementById("busca").value, { lang: getSelectedFilters("lang"), repoLength: parseInt(document.querySelector("#repo-length").value) || 0 });
+        searchRepositories(document.getElementById("busca").value, { lang: getSelectedFilters("lang"), webserver: getSelectedFilters("options_repo").length, repoLength: parseInt(document.querySelector("#repo-length").value) || 0 });
     }
 }
 
@@ -205,7 +205,7 @@ async function searchDescriptions(texto, filter = { cwe: [], score: [], options:
 
 }
 
-async function searchRepositories(texto, filter = { lang: [], repoLength: 0 }) {
+async function searchRepositories(texto, filter = { lang: [], webserver: false, repoLength: 0 }) {
     resultadoContainer.className = "w-full max-w-6xl grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
 
     resultadoContainer.innerHTML = "";
@@ -215,11 +215,14 @@ async function searchRepositories(texto, filter = { lang: [], repoLength: 0 }) {
     //}
 
     const encontrados = Object.entries(repositoriesJSON).filter(([chave, valor]) => {
-        const repoLength = Math.round(Object.values(valor.langs).reduce((acc, val) => acc + val, 0)/1024/1024)
+        const langs = Object.keys(valor.langs);
+        const repoLength = Math.round(Object.values(valor.langs).reduce((acc, val) => acc + val, 0) / 1024 / 1024)
         const contemTexto = chave.toLowerCase().includes(texto.toLowerCase());
         const linguagemAceita = filter.lang.length === 0 || filter.lang.includes(valor.language);
+        const webserverOption = filter.webserver.length === 0 || webServerLanguages.some(lang => langs.includes(lang))
         const repoLengthAceito = filter.repoLength === 0 || repoLength <= filter.repoLength;
-        return contemTexto && linguagemAceita && repoLengthAceito;
+
+        return contemTexto && linguagemAceita && repoLengthAceito && webserverOption;
     });
 
     console.log("encontrados:", encontrados)
