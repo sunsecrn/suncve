@@ -13,7 +13,7 @@ async function getSunsecRepositoryWorklog(repositoriesWorklog) {
     try {
         var response = await fetch(pathRoot+"/index/repositoriesWorklog.json");
         if (!response.ok) return {};
-        repositoriesJSON = await response.json();
+        repositoriesWorklog = await response.json();
 
     } catch (erro) {
         return {};
