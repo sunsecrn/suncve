@@ -235,6 +235,7 @@ async function searchRepositories(texto, filter = { lang: [], webserver: false, 
         limitados.forEach(async ([chave, valor], index) => {
             let cvssColor = "#a8a29e"; // default
             let borderColor = "#3f3f46"; // fallback neutro
+            const repositoryName = chave.replace("https://github.com/", "").replace(/\/$/, "");
 
             // Alternância de fundo
             const backgrounds = ["#1c1c1c", "#202020", "#2a2a2a"];
@@ -264,7 +265,7 @@ async function searchRepositories(texto, filter = { lang: [], webserver: false, 
             
               <!-- Nome do repositório -->
               <h3 class="text-base font-semibold text-[#f0eada] truncate max-w-full mb-1">
-                <a href="${chave}" target="_blank">${chave.replace("https://github.com/", "").replace(/\/$/, "")}</a>
+                <a href="${chave}" target="_blank">${repositoryName}</a>
               </h3>
             
               <!-- Linguagem -->
@@ -294,6 +295,17 @@ async function searchRepositories(texto, filter = { lang: [], webserver: false, 
                 <ul class="commit-list hidden mt-2 ml-2 text-xs text-[#e5e5e5] list-disc pl-4">
                   ${(repositoriesCVEsJSON[chave]?.commitsCVEs || [])
                     .map(url => `<li><a href="/suncve/cves/${url}.json" target="_blank" class="text-[#60a5fa] hover:underline">${url.split('/').pop().slice(0, 8)}</a></li>`)
+                    .join('')
+                }
+                </ul>
+
+                <div class="flex justify-between items-center mt-2 cursor-pointer" onclick="toggleDetails(this.nextElementSibling)">
+                  <span class="text-[#dd8f2b] font-semibold">☀️ Sunsec CodeQL:</span>
+                  <span class="text-[#dd8f2b] font-bold underline">${repositoriesWorklog[repositoryName]?.length || 0}</span>
+                </div>
+                <ul class="commit-list hidden mt-2 ml-2 text-xs text-[#e5e5e5] list-disc pl-4">
+                  ${(repositoriesWorklog[repositoryName] || [])
+                    .map(worklogInfo => `<li><p class="text-[#dd8f2b]">${worklogInfo.user} | ${worklogInfo.date}</p></li>`)
                     .join('')
                 }
                 </ul>
