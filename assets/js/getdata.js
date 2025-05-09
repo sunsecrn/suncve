@@ -9,11 +9,11 @@ async function getInfoCVE(cveID) {
     }
 }
 
-async function getSunsecRepositoryWorklog(repositoriesWorklog) {
+async function getSunsecRepositoryWorklog() {
     try {
         var response = await fetch(pathRoot+"/index/repositoriesWorklog.json");
         if (!response.ok) return {};
-        repositoriesWorklog = await response.json();
+        return await response.json();
 
     } catch (erro) {
         return {};

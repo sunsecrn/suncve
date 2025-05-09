@@ -22,7 +22,7 @@ const resultadoContainer = document.getElementById("resultado");
 
 carregarJsonComprimido(pathRoot+'/index/descriptions.json.gz');
 getRepositories()
-getSunsecRepositoryWorklog(repositoriesWorklog);
+getSunsecRepositoryWorklog().then(res => repositoriesWorklog = res);
 carregarCWEMap()
 carregarScoreMap()
 carregarCweDetailsMap()
