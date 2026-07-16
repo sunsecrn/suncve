@@ -116,6 +116,20 @@ jobs:
         run: |
           python scripts/create-manifest.py nuclei
 
+      - name: Enrich Wordfence Nuclei Templates
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/create-manifest.py wordfence-nuclei
+
+      - name: Flag Missing Nuclei Templates
+        run: |
+          python scripts/create-manifest.py missing-templates
+
+      - name: Enrich CISA KEV Catalog
+        run: |
+          python scripts/create-manifest.py kev
+
       - name: Enrich WordPress Plugin Metrics
         run: |
           python scripts/create-manifest.py wordpress
