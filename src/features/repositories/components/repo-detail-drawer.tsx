@@ -64,6 +64,11 @@ import { useRepositorySearch } from '@/lib/sqlite/use-repository-search';
 import { getEcosystemMeta } from '@/lib/ecosystem';
 import { cn } from '@/lib/utils';
 import { formatDateLocalized } from '@/lib/format';
+import {
+  useStudyStore,
+  useStudyHydrated
+} from '@/features/study/store/use-study-store';
+import { buildRepoSnapshot } from '@/features/study/lib/snapshot';
 
 const CVE_PAGE_SIZE = 20;
 
@@ -79,6 +84,7 @@ export function RepoDetailDrawer({
   onClose
 }: RepoDetailDrawerProps) {
   const t = useTranslations('repositories.detail');
+  const tStudy = useTranslations('studies.actions');
   const locale = useLocale();
   const [copied, setCopied] = useState(false);
   const [selectedCveId, setSelectedCveId] = useState<string | null>(null);
@@ -98,6 +104,13 @@ export function RepoDetailDrawer({
   // Extract repository fields (outside of conditional to avoid hooks order issues)
   const fullpath = repository?.fullpath as string | undefined;
   const cveCount = (repository?.cve_count as number) ?? 0;
+
+  // Favoritar repositório (estado local no navegador via store de estudos).
+  const studyHydrated = useStudyHydrated();
+  const isRepoFav = useStudyStore((s) =>
+    fullpath ? s.favoriteRepos.includes(fullpath) : false
+  );
+  const toggleFavoriteRepo = useStudyStore((s) => s.toggleFavoriteRepo);
 
   // Load CVEs when drawer opens or page changes
   useEffect(() => {
@@ -155,6 +168,9 @@ export function RepoDetailDrawer({
   const externalUrl = isWordpress
     ? `https://${repoFullpath}` // wordpress.org/plugins/<slug>
     : `https://github.com/${repoFullpath}`;
+
+  const repoFavActive = studyHydrated && isRepoFav;
+  const repoSnapshot = buildRepoSnapshot(repository);
 
   const displayName = name || repoFullpath.split('/').pop() || '';
   const truncatedName =
@@ -240,21 +256,32 @@ export function RepoDetailDrawer({
                     </Button>
                   </div>
                 </div>
-                <Button
-                  variant='outline'
-                  size='sm'
-                  className='shrink-0'
-                  asChild
-                >
-                  <a
-                    href={externalUrl}
-                    target='_blank'
-                    rel='noopener noreferrer'
+                <div className='flex shrink-0 items-center gap-2'>
+                  <Button
+                    variant={repoFavActive ? 'secondary' : 'outline'}
+                    size='sm'
+                    className='gap-1.5'
+                    onClick={() => toggleFavoriteRepo(repoSnapshot)}
                   >
-                    <IconExternalLink className='mr-1 h-4 w-4' />
-                    {isWordpress ? 'WordPress.org' : 'GitHub'}
-                  </a>
-                </Button>
+                    <IconStar
+                      className={cn(
+                        'h-4 w-4',
+                        repoFavActive && 'fill-amber-400 text-amber-500'
+                      )}
+                    />
+                    {repoFavActive ? tStudy('favorited') : tStudy('favorite')}
+                  </Button>
+                  <Button variant='outline' size='sm' asChild>
+                    <a
+                      href={externalUrl}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                    >
+                      <IconExternalLink className='mr-1 h-4 w-4' />
+                      {isWordpress ? 'WordPress.org' : 'GitHub'}
+                    </a>
+                  </Button>
+                </div>
               </div>
             </SheetHeader>
 

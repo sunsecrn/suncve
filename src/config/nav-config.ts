@@ -29,6 +29,14 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
+    title: 'My Studies',
+    url: '/dashboard/studies',
+    icon: 'studies',
+    isActive: false,
+    shortcut: ['m', 'e'],
+    items: []
+  },
+  {
     title: 'README',
     url: '/dashboard/readme',
     icon: 'readme',

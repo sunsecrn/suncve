@@ -444,6 +444,63 @@
       "thanks": "Obrigado por construir o SunCVE com a gente."
     }
   },
+  "studies": {
+    "title": "Meus Estudos",
+    "description": "Seus favoritos, anotações, histórico e listas de estudo — salvos neste navegador.",
+    "dbLoading": "Carregando a base para abrir os detalhes…",
+    "cveNotFound": "Não foi possível carregar {id}.",
+    "actions": {
+      "favorite": "Favoritar",
+      "favorited": "Favoritada",
+      "labels": "Labels"
+    },
+    "tabs": {
+      "favorites": "Favoritos",
+      "history": "Histórico",
+      "labels": "Listas"
+    },
+    "favorites": {
+      "cves": "CVEs",
+      "repos": "Repositórios",
+      "empty": "Nenhum favorito ainda",
+      "emptyHint": "Abra uma CVE ou repositório e toque na estrela para salvar aqui.",
+      "remove": "Remover dos favoritos"
+    },
+    "history": {
+      "empty": "Nenhuma CVE acessada ainda",
+      "clear": "Limpar histórico",
+      "remove": "Remover do histórico",
+      "accessedAt": "Acessada em {when}"
+    },
+    "labels": {
+      "empty": "Nenhuma label criada",
+      "namePlaceholder": "Nome da label",
+      "add": "Adicionar",
+      "create": "Criar label",
+      "rename": "Renomear",
+      "delete": "Excluir",
+      "deleteConfirm": "Excluir esta label? As CVEs continuam salvas, só perdem esta marcação.",
+      "selectHint": "Selecione uma label para ver as CVEs da lista",
+      "emptyList": "Nenhuma CVE nesta lista ainda",
+      "removeFromList": "Tirar desta lista"
+    },
+    "notes": {
+      "title": "Minhas anotações",
+      "edit": "Editar",
+      "preview": "Preview",
+      "placeholder": "Escreva em Markdown o que você aprendeu sobre esta CVE — PoC, payloads, links…",
+      "empty": "Sem anotações ainda. Clique em Editar para começar."
+    },
+    "export": {
+      "button": "Exportar"
+    },
+    "import": {
+      "button": "Importar",
+      "confirmReplace": "Importar vai substituir todos os seus dados de estudo atuais. Continuar?",
+      "success": "Dados importados com sucesso.",
+      "error": "Arquivo inválido. Nada foi alterado."
+    }
+  },
   "footer": {
     "tagline": "Pesquise e analise CVEs enriquecidas por múltiplas fontes públicas, rodando inteiramente no seu navegador.",
     "openSource": "Open Source · MIT",

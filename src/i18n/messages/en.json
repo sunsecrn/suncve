@@ -440,6 +440,63 @@
       "thanks": "Thank you for building SunCVE with us."
     }
   },
+  "studies": {
+    "title": "My Studies",
+    "description": "Your favorites, notes, history and study lists — saved in this browser.",
+    "dbLoading": "Loading the database to open details…",
+    "cveNotFound": "Couldn't load {id}.",
+    "actions": {
+      "favorite": "Favorite",
+      "favorited": "Favorited",
+      "labels": "Labels"
+    },
+    "tabs": {
+      "favorites": "Favorites",
+      "history": "History",
+      "labels": "Lists"
+    },
+    "favorites": {
+      "cves": "CVEs",
+      "repos": "Repositories",
+      "empty": "No favorites yet",
+      "emptyHint": "Open a CVE or repository and tap the star to save it here.",
+      "remove": "Remove from favorites"
+    },
+    "history": {
+      "empty": "No CVEs accessed yet",
+      "clear": "Clear history",
+      "remove": "Remove from history",
+      "accessedAt": "Accessed on {when}"
+    },
+    "labels": {
+      "empty": "No labels created",
+      "namePlaceholder": "Label name",
+      "add": "Add",
+      "create": "Create label",
+      "rename": "Rename",
+      "delete": "Delete",
+      "deleteConfirm": "Delete this label? The CVEs stay saved, they just lose this tag.",
+      "selectHint": "Select a label to see the CVEs in the list",
+      "emptyList": "No CVEs in this list yet",
+      "removeFromList": "Remove from this list"
+    },
+    "notes": {
+      "title": "My notes",
+      "edit": "Edit",
+      "preview": "Preview",
+      "placeholder": "Write in Markdown what you learned about this CVE — PoC, payloads, links…",
+      "empty": "No notes yet. Click Edit to start."
+    },
+    "export": {
+      "button": "Export"
+    },
+    "import": {
+      "button": "Import",
+      "confirmReplace": "Importing will replace all your current study data. Continue?",
+      "success": "Data imported successfully.",
+      "error": "Invalid file. Nothing was changed."
+    }
+  },
   "footer": {
     "tagline": "Search and analyze CVEs enriched from multiple public sources, running entirely in your browser.",
     "openSource": "Open Source · MIT",
