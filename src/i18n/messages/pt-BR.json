@@ -181,7 +181,10 @@
       "exploitAvailable": "Exploits disponíveis",
       "publicExploits": "Código de exploit público encontrado",
       "fixAvailable": "Correções disponíveis",
-      "patchCommits": "Commits de correção conhecidos"
+      "patchCommits": "Commits de correção conhecidos",
+      "inKev": "No KEV (CISA)",
+      "kevListed": "Exploração ativa",
+      "kevCatalog": "No catálogo CISA KEV"
     },
     "filters": {
       "title": "Filtros",

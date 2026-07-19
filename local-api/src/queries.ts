@@ -490,18 +490,21 @@ export class SunCveQueries {
       withExploit: number;
       withCommit: number;
       totalRepos: number;
+      inKev: number;
     }>(
       `SELECT
         (SELECT COUNT(*) FROM cves) as totalCVEs,
         (SELECT COUNT(*) FROM cves WHERE exists_exploit = 1) as withExploit,
         (SELECT COUNT(*) FROM cves WHERE exists_commit = 1) as withCommit,
+        (SELECT COUNT(*) FROM cves WHERE in_kev = 1) as inKev,
         (SELECT COUNT(*) FROM repositories) as totalRepos`
     );
     return {
       totalCVEs: s?.totalCVEs ?? 0,
       totalRepos: s?.totalRepos ?? 0,
       withExploit: s?.withExploit ?? 0,
-      withCommit: s?.withCommit ?? 0
+      withCommit: s?.withCommit ?? 0,
+      inKev: s?.inKev ?? 0
     };
   }
 
@@ -512,14 +515,16 @@ export class SunCveQueries {
       withExploit: number;
       withCommit: number;
       totalRepos: number;
+      inKev: number;
     }>(
       `WITH filtered_cves AS (
-        SELECT c.cve_id, c.exists_exploit, c.exists_commit FROM cves c ${where}
+        SELECT c.cve_id, c.exists_exploit, c.exists_commit, c.in_kev FROM cves c ${where}
       )
       SELECT
         COUNT(*) as totalCVEs,
         SUM(CASE WHEN exists_exploit = 1 THEN 1 ELSE 0 END) as withExploit,
         SUM(CASE WHEN exists_commit = 1 THEN 1 ELSE 0 END) as withCommit,
+        SUM(CASE WHEN in_kev = 1 THEN 1 ELSE 0 END) as inKev,
         (SELECT COUNT(DISTINCT r.fullpath)
            FROM filtered_cves fc
            JOIN cve_repositories cr ON cr.cve_id = fc.cve_id
@@ -531,7 +536,8 @@ export class SunCveQueries {
       totalCVEs: s?.totalCVEs ?? 0,
       totalRepos: s?.totalRepos ?? 0,
       withExploit: s?.withExploit ?? 0,
-      withCommit: s?.withCommit ?? 0
+      withCommit: s?.withCommit ?? 0,
+      inKev: s?.inKev ?? 0
     };
   }
 

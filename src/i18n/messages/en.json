@@ -177,7 +177,10 @@
       "exploitAvailable": "Exploits available",
       "publicExploits": "Public exploit code found",
       "fixAvailable": "Patches available",
-      "patchCommits": "Known fix commits"
+      "patchCommits": "Known fix commits",
+      "inKev": "In KEV (CISA)",
+      "kevListed": "Actively exploited",
+      "kevCatalog": "In the CISA KEV catalog"
     },
     "filters": {
       "title": "Filters",
