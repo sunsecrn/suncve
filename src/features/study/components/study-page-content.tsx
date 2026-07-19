@@ -96,7 +96,7 @@ function StudyPageContentInner() {
   };
 
   return (
-    <div className='flex flex-1 flex-col p-4 pb-8 md:px-6'>
+    <div className='flex min-h-[calc(100svh-4rem)] flex-1 flex-col p-4 pb-8 md:px-6'>
       {/* Header */}
       <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
         <div>
