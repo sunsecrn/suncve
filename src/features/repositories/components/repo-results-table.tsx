@@ -7,8 +7,6 @@ import {
   IconSelector,
   IconBrandGithub,
   IconBrandWordpress,
-  IconBrandNpm,
-  IconBrandPhp,
   IconStar,
   IconBug,
   IconGitCommit,
@@ -41,6 +39,7 @@ import type {
   RepositorySortConfig,
   RepositorySortField
 } from '@/features/search/types';
+import { getEcosystemMeta } from '@/lib/ecosystem';
 import { cn } from '@/lib/utils';
 import { formatDateLocalized } from '@/lib/format';
 
@@ -227,7 +226,9 @@ export function RepoResultsTable({
                             variant='outline'
                             className={cn('gap-1', meta.borderClass)}
                           >
-                            <meta.Icon className={cn('h-3 w-3', meta.textClass)} />
+                            <meta.Icon
+                              className={cn('h-3 w-3', meta.textClass)}
+                            />
                             {meta.label}
                           </Badge>
                         );
@@ -433,39 +434,6 @@ function TableSkeleton() {
       </div>
     </div>
   );
-}
-
-function getEcosystemMeta(ecosystem: string | null) {
-  switch (ecosystem) {
-    case 'wordpress':
-      return {
-        label: 'WordPress',
-        Icon: IconBrandWordpress,
-        textClass: 'text-[#21759b]',
-        borderClass: 'border-[#21759b]/50 text-[#21759b]'
-      };
-    case 'npm':
-      return {
-        label: 'npm',
-        Icon: IconBrandNpm,
-        textClass: 'text-[#cb3837]',
-        borderClass: 'border-[#cb3837]/50 text-[#cb3837]'
-      };
-    case 'packagist':
-      return {
-        label: 'Packagist',
-        Icon: IconBrandPhp,
-        textClass: 'text-[#6082bc]',
-        borderClass: 'border-[#6082bc]/50 text-[#6082bc]'
-      };
-    default:
-      return {
-        label: 'GitHub',
-        Icon: IconBrandGithub,
-        textClass: 'text-muted-foreground',
-        borderClass: 'text-muted-foreground'
-      };
-  }
 }
 
 function formatStars(stars: number): string {

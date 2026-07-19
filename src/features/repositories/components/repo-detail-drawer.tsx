@@ -4,10 +4,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import {
   IconExternalLink,
-  IconBrandGithub,
-  IconBrandWordpress,
-  IconBrandNpm,
-  IconBrandPhp,
   IconPackage,
   IconStar,
   IconCode,
@@ -65,6 +61,7 @@ import {
 import { CVEDetailDrawer } from '@/features/search/components/cve-detail-drawer';
 import { useCVESearch } from '@/lib/sqlite/use-cve-search';
 import { useRepositorySearch } from '@/lib/sqlite/use-repository-search';
+import { getEcosystemMeta } from '@/lib/ecosystem';
 import { cn } from '@/lib/utils';
 import { formatDateLocalized } from '@/lib/format';
 
@@ -243,7 +240,12 @@ export function RepoDetailDrawer({
                     </Button>
                   </div>
                 </div>
-                <Button variant='outline' size='sm' className='shrink-0' asChild>
+                <Button
+                  variant='outline'
+                  size='sm'
+                  className='shrink-0'
+                  asChild
+                >
                   <a
                     href={externalUrl}
                     target='_blank'
@@ -629,39 +631,6 @@ export function RepoDetailDrawer({
       />
     </Sheet>
   );
-}
-
-function getEcosystemMeta(ecosystem: string) {
-  switch (ecosystem) {
-    case 'wordpress':
-      return {
-        label: 'WordPress',
-        Icon: IconBrandWordpress,
-        textClass: 'text-[#21759b]',
-        borderClass: 'border-[#21759b]/50 text-[#21759b]'
-      };
-    case 'npm':
-      return {
-        label: 'npm',
-        Icon: IconBrandNpm,
-        textClass: 'text-[#cb3837]',
-        borderClass: 'border-[#cb3837]/50 text-[#cb3837]'
-      };
-    case 'packagist':
-      return {
-        label: 'Packagist',
-        Icon: IconBrandPhp,
-        textClass: 'text-[#6082bc]',
-        borderClass: 'border-[#6082bc]/50 text-[#6082bc]'
-      };
-    default:
-      return {
-        label: 'GitHub',
-        Icon: IconBrandGithub,
-        textClass: '',
-        borderClass: ''
-      };
-  }
 }
 
 // Helper function
