@@ -438,5 +438,22 @@
       "viewOnGithub": "Ver no GitHub",
       "thanks": "Obrigado por construir o SunCVE com a gente."
     }
+  },
+  "footer": {
+    "tagline": "Pesquise e analise CVEs enriquecidas por múltiplas fontes públicas, rodando inteiramente no seu navegador.",
+    "openSource": "Open Source · MIT",
+    "madeBy": "Feito pela comunidade sunsecrn",
+    "nav": "Navegação",
+    "navDashboard": "Dashboard",
+    "navSearch": "Busca de CVEs",
+    "navRepos": "Busca de Repositórios",
+    "navReadme": "README",
+    "resources": "Recursos",
+    "resCode": "Código no GitHub",
+    "resApi": "API & MCP local",
+    "resContributors": "Contribuidores",
+    "resLicense": "Licença MIT",
+    "sources": "Fontes de dados",
+    "srcAllSources": "Ver todas as fontes"
   }
 }
