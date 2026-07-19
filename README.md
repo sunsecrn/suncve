@@ -104,7 +104,6 @@ python scripts/create-manifest.py nuclei            # templates Nuclei
 python scripts/create-manifest.py wordfence-nuclei  # templates Nuclei da Wordfence
 python scripts/create-manifest.py missing-templates # indicador de template pendente
 python scripts/create-manifest.py kev               # catálogo CISA KEV
-python scripts/create-manifest.py backfill-titles   # deriva títulos ausentes da descrição
 python scripts/create-manifest.py npm               # metadados npm (downloads)
 python scripts/create-manifest.py packagist         # metadados Packagist
 ```
@@ -113,10 +112,6 @@ O enriquecimento **Nuclei** mapeia cada CVE aos seus templates via uma única
 chamada à **Git Trees API** do repositório `projectdiscovery/nuclei-templates`
 (sem clonar/baixar templates), guardando o link em `cves.list_nuclei`. Templates
 da **Wordfence** entram na mesma lista, marcados com `source: "wordfence"`.
-
-O comando **`backfill-titles`** é retroativo: como a ingestão de CVEs é
-incremental (só reprocessa deltas), ele deriva o título a partir da descrição
-para CVEs antigas que ainda estavam com `No Title Found`.
 
 ## Estrutura do Projeto
 

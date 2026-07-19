@@ -43,8 +43,8 @@ def derive_cve_title(raw_title: str | None, description: str | None) -> str:
     quando presente; senão, deriva a partir da description (trunca em 140 chars
     quebrando na última palavra e sufixa '...'); senão, retorna 'No Title Found'.
 
-    Reutilizada pela ingestão incremental (cvelistV5), pela criação de CVEs via
-    GitHub Advisory e pelo backfill retroativo (comando 'backfill-titles').
+    Reutilizada pela ingestão incremental (cvelistV5) e pela criação de CVEs via
+    GitHub Advisory.
     """
     title = raw_title or ""
     if not title and description:
@@ -4397,64 +4397,6 @@ class MissingNucleiTemplates:
         )
 
 
-class TitleBackfill:
-    """
-    Backfill retroativo de títulos.
-
-    Re-deriva o título de CVEs já existentes que continuam com 'No Title Found'
-    (ou título vazio/nulo) a partir da própria description.
-
-    Necessário porque a ingestão de CVEs (cvelistV5) é incremental — só reprocessa
-    os deltas —, então as CVEs armazenadas antes do fix de derivação de título nunca
-    são reparseadas e mantêm o placeholder. Reutiliza exatamente derive_cve_title,
-    é idempotente e não faz chamadas de rede: após a 1ª passagem só sobram CVEs sem
-    description (não deriváveis), que o WHERE já exclui.
-    """
-
-    SOURCE_NAME = "title-backfill"
-
-    def run(self, db: "databaseSQLite", batch_size: int = 5000) -> None:
-        db.createTable()
-
-        started = datetime.now(timezone.utc).isoformat()
-
-        rows = db.cursor.execute(
-            """
-            SELECT cve_id, description
-            FROM cves
-            WHERE (title IS NULL OR title = '' OR title = 'No Title Found')
-              AND description IS NOT NULL
-              AND TRIM(description) <> ''
-            """
-        ).fetchall()
-
-        total = len(rows)
-        updated = 0
-        print(f"[INFO] title-backfill: {total} CVEs candidatas a re-derivação de título")
-
-        for cve_id, description in rows:
-            new_title = derive_cve_title(None, description)
-            if new_title == "No Title Found":
-                continue
-            db.cursor.execute(
-                "UPDATE cves SET title = ? WHERE cve_id = ?",
-                (new_title, cve_id),
-            )
-            updated += 1
-            if updated % batch_size == 0:
-                db.conn.commit()
-                print(f"  [INFO] title-backfill: {updated}/{total} títulos atualizados")
-
-        db.conn.commit()
-        print(f"[INFO] title-backfill: {updated} títulos derivados da description")
-        db.updateSource(
-            self.SOURCE_NAME,
-            started,
-            started,
-            datetime.now(timezone.utc).isoformat(),
-        )
-
-
 class RepoManifestScanner:
     """
     Descobre o NOME canônico do pacote de cada repositório lendo o manifesto raiz
@@ -5210,7 +5152,6 @@ def main() -> None:
             "kev",
             "wordfence-nuclei",
             "missing-templates",
-            "backfill-titles",
             "update-fixes",
             "manifest",
             "all",
@@ -5228,7 +5169,6 @@ def main() -> None:
             "'osv-npm' (override repo npm names from the OSV npm feed, CVE->package), "
             "'npm' (enrich repos with npm package metadata using the scanned name), "
             "'packagist' (enrich repos with Packagist package metadata using the scanned name), "
-            "'backfill-titles' (re-derive 'No Title Found' titles from description, retroactive), "
             "'update-fixes' (recalculate commits_fix), "
             "'manifest' (generate public/db/manifest.json), "
             "'all' (cves+repos+advisories+pocs+nuclei+wordpress+scan-manifests+osv-npm+npm+packagist+manifest)"
@@ -5428,13 +5368,6 @@ def main() -> None:
         db_path = CVElistV5.DATA_DIR / "source.sqlite"
         db = databaseSQLite(db_path)
         MissingNucleiTemplates().run(db)
-        db.conn.close()
-
-    if args.command in ["backfill-titles", "all"]:
-        print("[INFO] Backfilling CVE titles from description (retroactive)...")
-        db_path = CVElistV5.DATA_DIR / "source.sqlite"
-        db = databaseSQLite(db_path)
-        TitleBackfill().run(db)
         db.conn.close()
 
     if args.command in ["wordpress", "all"]:
