@@ -37,6 +37,7 @@ export interface NucleiTemplate {
   severity?: string; // info.severity
   tags?: string[]; // info.tags
   url?: string; // raw.githubusercontent.com URL of the template
+  source?: string; // enrichment source: undefined = projectdiscovery, 'wordfence' = topscoder/nuclei-wordfence-cve
 }
 
 export interface CVEScore {

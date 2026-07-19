@@ -62,7 +62,12 @@
     "criticalPercentage": "{percentage}% são críticas",
     "criticalCVEs": "CVEs Críticas com Exploit",
     "criticalCVEsDescription": "Top 5 vulnerabilidades críticas recentes com exploit disponível",
-    "noCriticalCVEs": "Nenhuma CVE crítica com Exploit encontrada"
+    "noCriticalCVEs": "Nenhuma CVE crítica com Exploit encontrada",
+    "tagExploit": "Exploit disponível",
+    "tagCommit": "Commit de correção disponível",
+    "tagNuclei": "Template Nuclei",
+    "tagKev": "No CISA KEV",
+    "tagMissing": "Template pendente"
   },
   "themes": {
     "default": "Padrão",
@@ -176,7 +181,10 @@
       "exploitAvailable": "Exploits disponíveis",
       "publicExploits": "Código de exploit público encontrado",
       "fixAvailable": "Correções disponíveis",
-      "patchCommits": "Commits de correção conhecidos"
+      "patchCommits": "Commits de correção conhecidos",
+      "inKev": "No KEV (CISA)",
+      "kevListed": "Exploração ativa",
+      "kevCatalog": "No catálogo CISA KEV"
     },
     "filters": {
       "title": "Filtros",
@@ -202,7 +210,9 @@
       "hasCommitFix": "Com Commit Fix",
       "hasNuclei": "Com Nuclei",
       "hasKev": "No KEV (CISA)",
-      "hasMissingTemplate": "Template pendente (comunidade)",
+      "hasKevHelp": "Filtra CVEs presentes no catálogo CISA KEV (Known Exploited Vulnerabilities) — vulnerabilidades com evidência de exploração ativa no mundo real, confirmadas pela CISA. Entrar no catálogo sinaliza prioridade de correção e traz uma data-limite de remediação (para órgãos federais dos EUA).",
+      "hasMissingTemplate": "Template pendente",
+      "hasMissingTemplateHelp": "Essa filtragem vem do projeto missing-cve-nuclei-templates, que consome os dados do trickest/cve e aplica critérios próprios: palavras-chave no título/descrição (XSS, SQLi, open redirect etc.) e o julgamento manual do mantenedor sobre o que é \"adequado para Nuclei\" — ou seja, vulnerabilidade remota web/rede, já que o Nuclei é um scanner voltado a HTTP/rede.",
       "ecosystem": "Ecossistema",
       "ecosystemAll": "Todos",
       "popDownloads": "Downloads",
@@ -256,7 +266,12 @@
       "exploits": "Exploits",
       "commitFixes": "Commits de Correção",
       "nuclei": "Templates Nuclei",
+      "nucleiSources": "Fontes:",
       "references": "Referências",
+      "hasMissingTemplate": "Template pendente",
+      "missingTemplateDescription": "Esta CVE não possui template no repositório oficial do Nuclei. Está listada pela comunidade como template ausente.",
+      "kevViewCatalog": "Ver no catálogo CISA KEV",
+      "openExternalLink": "Abrir link externo",
       "more": "mais",
       "copyLink": "Copiar Link",
       "copied": "Copiado!"
@@ -343,8 +358,8 @@
     "purpose": {
       "badge": "Por que existimos",
       "title": "Por que o SunCVE existe",
-      "lead": "O SunCVE existe para responder o que poucas ferramentas respondem: <b>como</b> uma vulnerabilidade realmente nasce e é corrigida dentro do código. Em vez de só listar CVEs, analisamos os <hl>commits</hl>, os <hl>diffs</hl> e os <hl>exploits</hl> de cada falha — ligando o aviso de segurança ao código que o causou e ao que o corrigiu.",
-      "challenge": "Tudo nasceu de um desafio prático: filtrar vulnerabilidades por repositórios <b>populares</b> e por <b>tags específicas</b>, algo que nenhuma base entregava pronto. Hoje o SunCVE cruza <b>dois ecossistemas</b> — GitHub e WordPress — num só lugar, rodando inteiro no seu navegador.",
+      "lead": "O SunCVE existe para responder o que poucas ferramentas respondem: <b>como</b> uma vulnerabilidade realmente nasce e é corrigida dentro do código. Em vez de só listar CVEs, analisamos os <hl>commits</hl>, os <hl>diffs</hl> e os <hl>exploits</hl> de cada falha, ligando o aviso de segurança ao código que o causou e ao que o corrigiu.",
+      "challenge": "Tudo nasceu de um desafio prático: filtrar vulnerabilidades por repositórios <b>populares</b> e por <b>tags específicas</b>, algo que nenhuma base entregava pronto. Hoje o SunCVE cruza <b>dois ecossistemas</b>, GitHub e WordPress, num só lugar, rodando inteiro no seu navegador.",
       "commitsTitle": "Commits",
       "commitsText": "Lemos os commits para encontrar onde a falha foi introduzida e onde foi corrigida.",
       "diffsTitle": "Diffs",
@@ -361,15 +376,19 @@
       "cveSearchTitle": "Busca de CVEs",
       "cveSearchText": "Pesquise e filtre vulnerabilidades por CVE, fornecedor, produto e descrição.",
       "repoSearchTitle": "Busca de Repositórios",
-      "repoSearchText": "Explore repositórios GitHub e plugins WordPress vinculados a vulnerabilidades.",
+      "repoSearchText": "Explore repositórios GitHub e pacotes npm, Packagist e WordPress vinculados a vulnerabilidades.",
       "dashboardTitle": "Dashboard",
-      "dashboardText": "Visão geral com gráficos de CVEs por período, severidade e tendências de CWE.",
+      "dashboardText": "Visão geral com gráficos de CVEs por período, severidade e tendências de CWE, além das CVEs críticas com tags de origem.",
       "exploitsTitle": "Exploits e PoCs",
       "exploitsText": "Identifique CVEs com código de exploração público disponível.",
       "commitsTitle": "Commits de correção",
       "commitsText": "Encontre os commits que corrigiram cada vulnerabilidade.",
-      "ecosystemsTitle": "GitHub e WordPress",
-      "ecosystemsText": "Dois ecossistemas no mesmo lugar, com métricas de popularidade próprias."
+      "nucleiTitle": "Templates Nuclei",
+      "nucleiText": "Veja quais templates do Nuclei detectam cada CVE, incluindo os templates da comunidade Wordfence.",
+      "kevTitle": "CISA KEV",
+      "kevText": "Destaque para vulnerabilidades no catálogo CISA Known Exploited Vulnerabilities, com prazo de correção e uso em ransomware.",
+      "ecosystemsTitle": "Múltiplos ecossistemas",
+      "ecosystemsText": "GitHub, WordPress, npm e Packagist no mesmo lugar, cada um com suas métricas de popularidade."
     },
     "filters": {
       "badge": "Filtros",
@@ -379,6 +398,7 @@
       "severity": "Severidade: crítica, alta, média e baixa",
       "cwe": "CWE individual e por categoria de vulnerabilidade",
       "flags": "Com exploit, com repositório e com commit de fix",
+      "detection": "Com template Nuclei, no CISA KEV e template pendente",
       "ecosystem": "Ecossistema: GitHub, WordPress, npm ou Packagist",
       "popularity": "Faixa de downloads do pacote (npm/Packagist/WordPress)",
       "language": "Linguagem de programação",
@@ -396,6 +416,14 @@
       "advisoryText": "Banco de avisos de segurança curado pelo GitHub para diversos ecossistemas.",
       "pocTitle": "PoC-in-GitHub",
       "pocText": "Coleção de provas de conceito e exploits públicos associados a CVEs.",
+      "nucleiTitle": "Nuclei Templates",
+      "nucleiText": "projectdiscovery/nuclei-templates mapeia cada CVE aos templates de detecção que a identificam.",
+      "wordfenceTitle": "Wordfence Nuclei CVE",
+      "wordfenceText": "topscoder/nuclei-wordfence-cve adiciona os templates Nuclei da Wordfence, identificados pela fonte na lista de templates.",
+      "missingTitle": "Missing CVE Nuclei Templates",
+      "missingText": "edoardottt/missing-cve-nuclei-templates sinaliza CVEs que ainda não têm template no repositório oficial do Nuclei.",
+      "kevTitle": "Catálogo CISA KEV",
+      "kevText": "Catálogo CISA Known Exploited Vulnerabilities, com data de inclusão, prazo de correção e uso conhecido em ransomware.",
       "wordpressTitle": "Base de plugins WordPress",
       "wordpressText": "Dataset rix4uni/wordpress-plugins do diretório oficial do WordPress, com instalações ativas, downloads e data de atualização (last updated).",
       "npmTitle": "Pacotes npm",
@@ -415,5 +443,22 @@
       "viewOnGithub": "Ver no GitHub",
       "thanks": "Obrigado por construir o SunCVE com a gente."
     }
+  },
+  "footer": {
+    "tagline": "Pesquise e analise CVEs enriquecidas por múltiplas fontes públicas, rodando inteiramente no seu navegador.",
+    "openSource": "Open Source · MIT",
+    "madeBy": "Feito pela comunidade sunsecrn",
+    "nav": "Navegação",
+    "navDashboard": "Dashboard",
+    "navSearch": "Busca de CVEs",
+    "navRepos": "Busca de Repositórios",
+    "navReadme": "README",
+    "resources": "Recursos",
+    "resCode": "Código no GitHub",
+    "resApi": "API & MCP local",
+    "resContributors": "Contribuidores",
+    "resLicense": "Licença MIT",
+    "sources": "Fontes de dados",
+    "srcAllSources": "Ver todas as fontes"
   }
 }

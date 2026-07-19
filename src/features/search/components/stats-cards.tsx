@@ -6,7 +6,8 @@ import {
   IconBrandGithub,
   IconSkull,
   IconGitCommit,
-  IconTrendingUp
+  IconTrendingUp,
+  IconShieldExclamation
 } from '@tabler/icons-react';
 import {
   Card,
@@ -24,6 +25,7 @@ interface StatsCardsProps {
     totalRepos: number;
     withExploit: number;
     withCommit: number;
+    inKev: number;
   };
 }
 
@@ -39,10 +41,14 @@ export function StatsCards({ stats }: StatsCardsProps) {
     stats.totalCVEs > 0
       ? ((stats.withCommit / stats.totalCVEs) * 100).toFixed(1)
       : '0';
+  const kevPercent =
+    stats.totalCVEs > 0
+      ? ((stats.inKev / stats.totalCVEs) * 100).toFixed(1)
+      : '0';
 
   return (
     <div
-      className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-3 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs sm:gap-4 lg:grid-cols-4'
+      className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-3 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs sm:gap-4 lg:grid-cols-5'
       data-tour='cve-stats'
     >
       <Card className='@container/card'>
@@ -146,6 +152,34 @@ export function StatsCards({ stats }: StatsCardsProps) {
           </div>
           <div className='text-muted-foreground hidden sm:block'>
             {t('patchCommits')}
+          </div>
+        </CardFooter>
+      </Card>
+
+      <Card className='@container/card'>
+        <CardHeader className='p-4 pb-2 sm:p-6 sm:pb-2'>
+          <CardDescription className='text-xs sm:text-sm'>
+            {t('inKev')}
+          </CardDescription>
+          <CardTitle className='text-xl font-semibold tabular-nums sm:text-2xl @[250px]/card:text-3xl'>
+            {stats.inKev.toLocaleString()}
+          </CardTitle>
+          <CardAction>
+            <Badge
+              variant='outline'
+              className='border-amber-500/50 text-xs text-amber-500'
+            >
+              {kevPercent}%
+            </Badge>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className='flex-col items-start gap-1 p-4 pt-0 text-xs sm:gap-1.5 sm:p-6 sm:pt-0 sm:text-sm'>
+          <div className='line-clamp-1 flex gap-2 font-medium text-amber-500'>
+            <IconShieldExclamation className='size-3 sm:size-4' />
+            {t('kevListed')}
+          </div>
+          <div className='text-muted-foreground hidden sm:block'>
+            {t('kevCatalog')}
           </div>
         </CardFooter>
       </Card>

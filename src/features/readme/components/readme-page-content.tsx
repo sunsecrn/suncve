@@ -19,6 +19,8 @@ import {
   IconHeart,
   IconCheck,
   IconTarget,
+  IconTargetArrow,
+  IconShieldExclamation,
   IconPackage,
   IconAdjustmentsHorizontal,
   IconHeartHandshake,
@@ -55,7 +57,9 @@ function SectionHeading({
         <div className='bg-primary/10 rounded-lg p-2'>
           <Icon className='text-primary size-5' />
         </div>
-        <h2 className='text-xl font-bold tracking-tight sm:text-2xl'>{title}</h2>
+        <h2 className='text-xl font-bold tracking-tight sm:text-2xl'>
+          {title}
+        </h2>
       </div>
       {lead && <p className='text-muted-foreground max-w-3xl'>{lead}</p>}
     </div>
@@ -133,9 +137,23 @@ export default function ReadmePageContent() {
       text: t('offers.commitsText')
     },
     {
-      icon: IconWorld,
+      icon: IconTargetArrow,
+      color: 'text-cyan-500',
+      bg: 'bg-cyan-500/10',
+      title: t('offers.nucleiTitle'),
+      text: t('offers.nucleiText')
+    },
+    {
+      icon: IconShieldExclamation,
       color: 'text-amber-500',
       bg: 'bg-amber-500/10',
+      title: t('offers.kevTitle'),
+      text: t('offers.kevText')
+    },
+    {
+      icon: IconWorld,
+      color: 'text-rose-500',
+      bg: 'bg-rose-500/10',
       title: t('offers.ecosystemsTitle'),
       text: t('offers.ecosystemsText')
     }
@@ -146,6 +164,7 @@ export default function ReadmePageContent() {
     t('filters.severity'),
     t('filters.cwe'),
     t('filters.flags'),
+    t('filters.detection'),
     t('filters.ecosystem'),
     t('filters.popularity'),
     t('filters.language'),
@@ -175,6 +194,34 @@ export default function ReadmePageContent() {
       url: 'https://github.com/nomi-sec/PoC-in-GitHub',
       color: 'text-red-500',
       bg: 'bg-red-500/10'
+    },
+    {
+      title: t('sources.nucleiTitle'),
+      text: t('sources.nucleiText'),
+      url: 'https://github.com/projectdiscovery/nuclei-templates',
+      color: 'text-cyan-500',
+      bg: 'bg-cyan-500/10'
+    },
+    {
+      title: t('sources.wordfenceTitle'),
+      text: t('sources.wordfenceText'),
+      url: 'https://github.com/topscoder/nuclei-wordfence-cve',
+      color: 'text-orange-500',
+      bg: 'bg-orange-500/10'
+    },
+    {
+      title: t('sources.missingTitle'),
+      text: t('sources.missingText'),
+      url: 'https://github.com/edoardottt/missing-cve-nuclei-templates',
+      color: 'text-purple-500',
+      bg: 'bg-purple-500/10'
+    },
+    {
+      title: t('sources.kevTitle'),
+      text: t('sources.kevText'),
+      url: 'https://www.cisa.gov/known-exploited-vulnerabilities-catalog',
+      color: 'text-amber-500',
+      bg: 'bg-amber-500/10'
     },
     {
       title: t('sources.wordpressTitle'),
@@ -220,7 +267,9 @@ export default function ReadmePageContent() {
               <p className='text-base leading-relaxed'>
                 {t.rich('purpose.lead', {
                   b: (c) => (
-                    <strong className='text-foreground font-semibold'>{c}</strong>
+                    <strong className='text-foreground font-semibold'>
+                      {c}
+                    </strong>
                   ),
                   hl: (c) => (
                     <span className='text-primary font-semibold'>{c}</span>
@@ -230,7 +279,9 @@ export default function ReadmePageContent() {
               <p className='text-muted-foreground leading-relaxed'>
                 {t.rich('purpose.challenge', {
                   b: (c) => (
-                    <strong className='text-foreground font-semibold'>{c}</strong>
+                    <strong className='text-foreground font-semibold'>
+                      {c}
+                    </strong>
                   ),
                   hl: (c) => (
                     <span className='text-primary font-semibold'>{c}</span>

@@ -54,7 +54,10 @@ export class SunCveQueries {
 
   // ---- CVE search -------------------------------------------------------
 
-  private buildCveWhere(filters: SearchFilters): { where: string; params: Params } {
+  private buildCveWhere(filters: SearchFilters): {
+    where: string;
+    params: Params;
+  } {
     const conditions: string[] = [];
     const params: Params = [];
 
@@ -128,10 +131,16 @@ export class SunCveQueries {
     }
 
     // Nuclei filter (new). Degrade gracefully if the column is absent.
+    // exists_nuclei is only set to 1 during enrichment; CVEs without a template
+    // keep it NULL (no DEFAULT, not written on insert), so the "no" case must
+    // treat NULL as "no template".
     if (filters.hasNuclei !== null) {
       if (this.hasNucleiCol) {
-        conditions.push('c.exists_nuclei = ?');
-        params.push(filters.hasNuclei ? 1 : 0);
+        conditions.push(
+          filters.hasNuclei
+            ? 'c.exists_nuclei = 1'
+            : '(c.exists_nuclei = 0 OR c.exists_nuclei IS NULL)'
+        );
       } else {
         conditions.push(filters.hasNuclei ? '1 = 0' : '1 = 1');
       }
@@ -154,7 +163,10 @@ export class SunCveQueries {
       this.db.hasColumn('repositories', 'downloads')
     ) {
       let dl = '';
-      if (filters.popDownloadsMin !== null && filters.popDownloadsMax !== null) {
+      if (
+        filters.popDownloadsMin !== null &&
+        filters.popDownloadsMax !== null
+      ) {
         dl = 'r.downloads >= ? AND r.downloads <= ?';
         params.push(filters.popDownloadsMin, filters.popDownloadsMax);
       } else if (filters.popDownloadsMin !== null) {
@@ -478,18 +490,21 @@ export class SunCveQueries {
       withExploit: number;
       withCommit: number;
       totalRepos: number;
+      inKev: number;
     }>(
       `SELECT
         (SELECT COUNT(*) FROM cves) as totalCVEs,
         (SELECT COUNT(*) FROM cves WHERE exists_exploit = 1) as withExploit,
         (SELECT COUNT(*) FROM cves WHERE exists_commit = 1) as withCommit,
+        (SELECT COUNT(*) FROM cves WHERE in_kev = 1) as inKev,
         (SELECT COUNT(*) FROM repositories) as totalRepos`
     );
     return {
       totalCVEs: s?.totalCVEs ?? 0,
       totalRepos: s?.totalRepos ?? 0,
       withExploit: s?.withExploit ?? 0,
-      withCommit: s?.withCommit ?? 0
+      withCommit: s?.withCommit ?? 0,
+      inKev: s?.inKev ?? 0
     };
   }
 
@@ -500,14 +515,16 @@ export class SunCveQueries {
       withExploit: number;
       withCommit: number;
       totalRepos: number;
+      inKev: number;
     }>(
       `WITH filtered_cves AS (
-        SELECT c.cve_id, c.exists_exploit, c.exists_commit FROM cves c ${where}
+        SELECT c.cve_id, c.exists_exploit, c.exists_commit, c.in_kev FROM cves c ${where}
       )
       SELECT
         COUNT(*) as totalCVEs,
         SUM(CASE WHEN exists_exploit = 1 THEN 1 ELSE 0 END) as withExploit,
         SUM(CASE WHEN exists_commit = 1 THEN 1 ELSE 0 END) as withCommit,
+        SUM(CASE WHEN in_kev = 1 THEN 1 ELSE 0 END) as inKev,
         (SELECT COUNT(DISTINCT r.fullpath)
            FROM filtered_cves fc
            JOIN cve_repositories cr ON cr.cve_id = fc.cve_id
@@ -519,7 +536,8 @@ export class SunCveQueries {
       totalCVEs: s?.totalCVEs ?? 0,
       totalRepos: s?.totalRepos ?? 0,
       withExploit: s?.withExploit ?? 0,
-      withCommit: s?.withCommit ?? 0
+      withCommit: s?.withCommit ?? 0,
+      inKev: s?.inKev ?? 0
     };
   }
 
@@ -894,7 +912,9 @@ export class SunCveQueries {
     return this.db.all(
       `SELECT c.cve_id, c.title, c.description,
         (SELECT MAX(score) FROM cve_scores WHERE cve_id = c.cve_id) as score,
-        c.date_published
+        c.date_published,
+        c.exists_exploit, c.exists_commit, c.exists_nuclei,
+        c.in_kev, c.missing_nuclei_template
       FROM cves c
       WHERE c.exists_exploit = 1
         AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)
@@ -996,7 +1016,11 @@ export class SunCveQueries {
 
   getTopCWEs(limit = 5, period: '30d' | '1y' | '5y' = '30d') {
     const sqlPeriod =
-      period === '30d' ? '-30 days' : period === '1y' ? '-12 months' : '-5 years';
+      period === '30d'
+        ? '-30 days'
+        : period === '1y'
+          ? '-12 months'
+          : '-5 years';
     return this.db.all<{ cwe_id: string; count: number }>(
       `SELECT cw.cwe_id, COUNT(*) as count FROM cve_cwes cw
        JOIN cves c ON cw.cve_id = c.cve_id

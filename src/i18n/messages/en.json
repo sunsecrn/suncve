@@ -62,7 +62,12 @@
     "criticalPercentage": "{percentage}% are critical",
     "criticalCVEs": "Critical CVEs with Exploit",
     "criticalCVEsDescription": "Top 5 recent critical vulnerabilities with available exploit",
-    "noCriticalCVEs": "No critical CVEs with Exploit found"
+    "noCriticalCVEs": "No critical CVEs with Exploit found",
+    "tagExploit": "Exploit available",
+    "tagCommit": "Fix commit available",
+    "tagNuclei": "Nuclei template",
+    "tagKev": "In CISA KEV",
+    "tagMissing": "Pending template"
   },
   "themes": {
     "default": "Default",
@@ -172,7 +177,10 @@
       "exploitAvailable": "Exploits available",
       "publicExploits": "Public exploit code found",
       "fixAvailable": "Patches available",
-      "patchCommits": "Known fix commits"
+      "patchCommits": "Known fix commits",
+      "inKev": "In KEV (CISA)",
+      "kevListed": "Actively exploited",
+      "kevCatalog": "In the CISA KEV catalog"
     },
     "filters": {
       "title": "Filters",
@@ -198,7 +206,9 @@
       "hasCommitFix": "Has Commit Fix",
       "hasNuclei": "Has Nuclei",
       "hasKev": "In KEV (CISA)",
-      "hasMissingTemplate": "Pending template (community)",
+      "hasKevHelp": "Filters CVEs listed in the CISA KEV (Known Exploited Vulnerabilities) catalog — vulnerabilities with evidence of active, real-world exploitation confirmed by CISA. Being listed signals remediation priority and carries a remediation due date (for US federal agencies).",
+      "hasMissingTemplate": "Pending template",
+      "hasMissingTemplateHelp": "This filter comes from the missing-cve-nuclei-templates project, which consumes trickest/cve data and applies its own criteria: keywords in the title/description (XSS, SQLi, open redirect, etc.) and the maintainer's manual judgment of what is \"suitable for Nuclei\" — i.e. a remote web/network vulnerability, since Nuclei is an HTTP/network-oriented scanner.",
       "ecosystem": "Ecosystem",
       "ecosystemAll": "All",
       "popDownloads": "Downloads",
@@ -252,7 +262,12 @@
       "exploits": "Exploits",
       "commitFixes": "Fix Commits",
       "nuclei": "Nuclei Templates",
+      "nucleiSources": "Sources:",
       "references": "References",
+      "hasMissingTemplate": "Pending template",
+      "missingTemplateDescription": "This CVE has no template in the official Nuclei repository. It is listed by the community as a missing template.",
+      "kevViewCatalog": "View in CISA KEV catalog",
+      "openExternalLink": "Open external link",
       "more": "more",
       "copyLink": "Copy Link",
       "copied": "Copied!"
@@ -339,8 +354,8 @@
     "purpose": {
       "badge": "Why we exist",
       "title": "Why SunCVE exists",
-      "lead": "SunCVE exists to answer what few tools answer: <b>how</b> a vulnerability is actually born and fixed inside the code. Instead of just listing CVEs, we analyze the <hl>commits</hl>, the <hl>diffs</hl> and the <hl>exploits</hl> of each flaw — linking the security advisory to the code that caused it and the code that fixed it.",
-      "challenge": "It all started from a practical challenge: filtering vulnerabilities by <b>popular</b> repositories and by <b>specific tags</b>, something no database offered out of the box. Today SunCVE bridges <b>two ecosystems</b> — GitHub and WordPress — in one place, running entirely in your browser.",
+      "lead": "SunCVE exists to answer what few tools answer: <b>how</b> a vulnerability is actually born and fixed inside the code. Instead of just listing CVEs, we analyze the <hl>commits</hl>, the <hl>diffs</hl> and the <hl>exploits</hl> of each flaw, linking the security advisory to the code that caused it and the code that fixed it.",
+      "challenge": "It all started from a practical challenge: filtering vulnerabilities by <b>popular</b> repositories and by <b>specific tags</b>, something no database offered out of the box. Today SunCVE bridges <b>two ecosystems</b>, GitHub and WordPress, in one place, running entirely in your browser.",
       "commitsTitle": "Commits",
       "commitsText": "We read commits to find where a flaw was introduced and where it was fixed.",
       "diffsTitle": "Diffs",
@@ -357,15 +372,19 @@
       "cveSearchTitle": "CVE Search",
       "cveSearchText": "Search and filter vulnerabilities by CVE, vendor, product, and description.",
       "repoSearchTitle": "Repository Search",
-      "repoSearchText": "Explore GitHub repositories and WordPress plugins linked to vulnerabilities.",
+      "repoSearchText": "Explore GitHub repositories and npm, Packagist and WordPress packages linked to vulnerabilities.",
       "dashboardTitle": "Dashboard",
-      "dashboardText": "Overview with charts of CVEs by period, severity, and CWE trends.",
+      "dashboardText": "Overview with charts of CVEs by period, severity, and CWE trends, plus critical CVEs with source tags.",
       "exploitsTitle": "Exploits and PoCs",
       "exploitsText": "Spot CVEs with public exploitation code available.",
       "commitsTitle": "Fix commits",
       "commitsText": "Find the commits that fixed each vulnerability.",
-      "ecosystemsTitle": "GitHub and WordPress",
-      "ecosystemsText": "Two ecosystems in one place, each with its own popularity metrics."
+      "nucleiTitle": "Nuclei templates",
+      "nucleiText": "See which Nuclei templates detect each CVE, including community Wordfence templates.",
+      "kevTitle": "CISA KEV",
+      "kevText": "Highlight vulnerabilities in the CISA Known Exploited Vulnerabilities catalog, with due date and ransomware use.",
+      "ecosystemsTitle": "Multiple ecosystems",
+      "ecosystemsText": "GitHub, WordPress, npm and Packagist in one place, each with its own popularity metrics."
     },
     "filters": {
       "badge": "Filters",
@@ -375,6 +394,7 @@
       "severity": "Severity: critical, high, medium, and low",
       "cwe": "Individual CWE and by vulnerability category",
       "flags": "Has exploit, has repository, and has fix commit",
+      "detection": "Has Nuclei template, in CISA KEV, and pending template",
       "ecosystem": "Ecosystem: GitHub, WordPress, npm or Packagist",
       "popularity": "Package downloads range (npm/Packagist/WordPress)",
       "language": "Programming language",
@@ -392,6 +412,14 @@
       "advisoryText": "Security advisory database curated by GitHub for many ecosystems.",
       "pocTitle": "PoC-in-GitHub",
       "pocText": "Collection of public proofs of concept and exploits associated with CVEs.",
+      "nucleiTitle": "Nuclei Templates",
+      "nucleiText": "projectdiscovery/nuclei-templates maps each CVE to the detection templates that identify it.",
+      "wordfenceTitle": "Wordfence Nuclei CVE",
+      "wordfenceText": "topscoder/nuclei-wordfence-cve adds Wordfence Nuclei templates, flagged by source within the template list.",
+      "missingTitle": "Missing CVE Nuclei Templates",
+      "missingText": "edoardottt/missing-cve-nuclei-templates flags CVEs that still have no template in the official Nuclei repository.",
+      "kevTitle": "CISA KEV Catalog",
+      "kevText": "CISA Known Exploited Vulnerabilities catalog, with date added, remediation due date and known ransomware use.",
       "wordpressTitle": "WordPress plugins database",
       "wordpressText": "rix4uni/wordpress-plugins dataset from the official WordPress directory, with active installs, downloads and last updated date.",
       "npmTitle": "npm packages",
@@ -411,5 +439,22 @@
       "viewOnGithub": "View on GitHub",
       "thanks": "Thank you for building SunCVE with us."
     }
+  },
+  "footer": {
+    "tagline": "Search and analyze CVEs enriched from multiple public sources, running entirely in your browser.",
+    "openSource": "Open Source · MIT",
+    "madeBy": "Built by the sunsecrn community",
+    "nav": "Navigation",
+    "navDashboard": "Dashboard",
+    "navSearch": "CVE Search",
+    "navRepos": "Repository Search",
+    "navReadme": "README",
+    "resources": "Resources",
+    "resCode": "Code on GitHub",
+    "resApi": "Local API & MCP",
+    "resContributors": "Contributors",
+    "resLicense": "MIT License",
+    "sources": "Data sources",
+    "srcAllSources": "View all sources"
   }
 }

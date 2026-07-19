@@ -61,7 +61,14 @@ function SearchPageContentInner() {
     totalRepos: number;
     withExploit: number;
     withCommit: number;
-  }>({ totalCVEs: 0, totalRepos: 0, withExploit: 0, withCommit: 0 });
+    inKev: number;
+  }>({
+    totalCVEs: 0,
+    totalRepos: 0,
+    withExploit: 0,
+    withCommit: 0,
+    inKev: 0
+  });
 
   // Debounce filters to avoid excessive queries while typing
   const debouncedFilters = useDebounce(filters, SEARCH_DEBOUNCE_MS);
