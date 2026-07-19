@@ -181,5 +181,6 @@ export interface NucleiTemplate {
   severity?: string;
   tags?: string[];
   url?: string;
+  source?: string; // undefined = projectdiscovery, 'wordfence' = topscoder/nuclei-wordfence-cve
   [key: string]: unknown;
 }

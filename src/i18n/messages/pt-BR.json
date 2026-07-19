@@ -256,7 +256,12 @@
       "exploits": "Exploits",
       "commitFixes": "Commits de Correção",
       "nuclei": "Templates Nuclei",
+      "nucleiSources": "Fontes:",
       "references": "Referências",
+      "hasMissingTemplate": "Template pendente (comunidade)",
+      "missingTemplateDescription": "Esta CVE não possui template no repositório oficial do Nuclei. Está listada pela comunidade como template ausente.",
+      "kevViewCatalog": "Ver no catálogo CISA KEV",
+      "openExternalLink": "Abrir link externo",
       "more": "mais",
       "copyLink": "Copiar Link",
       "copied": "Copiado!"

@@ -252,7 +252,12 @@
       "exploits": "Exploits",
       "commitFixes": "Fix Commits",
       "nuclei": "Nuclei Templates",
+      "nucleiSources": "Sources:",
       "references": "References",
+      "hasMissingTemplate": "Pending template (community)",
+      "missingTemplateDescription": "This CVE has no template in the official Nuclei repository. It is listed by the community as a missing template.",
+      "kevViewCatalog": "View in CISA KEV catalog",
+      "openExternalLink": "Open external link",
       "more": "more",
       "copyLink": "Copy Link",
       "copied": "Copied!"
