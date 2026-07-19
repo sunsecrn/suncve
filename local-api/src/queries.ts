@@ -54,7 +54,10 @@ export class SunCveQueries {
 
   // ---- CVE search -------------------------------------------------------
 
-  private buildCveWhere(filters: SearchFilters): { where: string; params: Params } {
+  private buildCveWhere(filters: SearchFilters): {
+    where: string;
+    params: Params;
+  } {
     const conditions: string[] = [];
     const params: Params = [];
 
@@ -128,10 +131,16 @@ export class SunCveQueries {
     }
 
     // Nuclei filter (new). Degrade gracefully if the column is absent.
+    // exists_nuclei is only set to 1 during enrichment; CVEs without a template
+    // keep it NULL (no DEFAULT, not written on insert), so the "no" case must
+    // treat NULL as "no template".
     if (filters.hasNuclei !== null) {
       if (this.hasNucleiCol) {
-        conditions.push('c.exists_nuclei = ?');
-        params.push(filters.hasNuclei ? 1 : 0);
+        conditions.push(
+          filters.hasNuclei
+            ? 'c.exists_nuclei = 1'
+            : '(c.exists_nuclei = 0 OR c.exists_nuclei IS NULL)'
+        );
       } else {
         conditions.push(filters.hasNuclei ? '1 = 0' : '1 = 1');
       }
@@ -154,7 +163,10 @@ export class SunCveQueries {
       this.db.hasColumn('repositories', 'downloads')
     ) {
       let dl = '';
-      if (filters.popDownloadsMin !== null && filters.popDownloadsMax !== null) {
+      if (
+        filters.popDownloadsMin !== null &&
+        filters.popDownloadsMax !== null
+      ) {
         dl = 'r.downloads >= ? AND r.downloads <= ?';
         params.push(filters.popDownloadsMin, filters.popDownloadsMax);
       } else if (filters.popDownloadsMin !== null) {
@@ -998,7 +1010,11 @@ export class SunCveQueries {
 
   getTopCWEs(limit = 5, period: '30d' | '1y' | '5y' = '30d') {
     const sqlPeriod =
-      period === '30d' ? '-30 days' : period === '1y' ? '-12 months' : '-5 years';
+      period === '30d'
+        ? '-30 days'
+        : period === '1y'
+          ? '-12 months'
+          : '-5 years';
     return this.db.all<{ cwe_id: string; count: number }>(
       `SELECT cw.cwe_id, COUNT(*) as count FROM cve_cwes cw
        JOIN cves c ON cw.cve_id = c.cve_id
