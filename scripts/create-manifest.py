@@ -36,6 +36,28 @@ except ModuleNotFoundError:
     BeautifulSoup = None  # type: ignore[assignment]
 
 
+def derive_cve_title(raw_title: str | None, description: str | None) -> str:
+    """Deriva o título da CVE de forma consistente em todos os caminhos.
+
+    Regra (idêntica à usada em formatDataVersion5_2): usa o título explícito
+    quando presente; senão, deriva a partir da description (trunca em 140 chars
+    quebrando na última palavra e sufixa '...'); senão, retorna 'No Title Found'.
+
+    Reutilizada pela ingestão incremental (cvelistV5), pela criação de CVEs via
+    GitHub Advisory e pelo backfill retroativo (comando 'backfill-titles').
+    """
+    title = raw_title or ""
+    if not title and description:
+        title = description.strip()[:140]
+        if len(description) > 140:
+            title = title.rsplit(" ", 1)[0]
+        if not title.endswith("."):
+            title += "..."
+    if not title:
+        title = "No Title Found"
+    return title
+
+
 def _build_http_session() -> requests.Session:
     if requests is None or HTTPAdapter is None:
         return None  # type: ignore[return-value]
@@ -2598,16 +2620,7 @@ class CVElistV5:
         # Description e Title
         descriptions = cna.get("descriptions", [])
         description = descriptions[0].get("value") if descriptions else None
-        title = cna.get("title") or ""
-
-        if not title and description:
-            title = description.strip()[:140]
-            if len(description) > 140:
-                title = title.rsplit(" ", 1)[0]
-            if not title.endswith("."):
-                title += "..."
-        if not title:
-            title = "No Title Found"
+        title = derive_cve_title(cna.get("title"), description)
 
         # References
         references = [
@@ -3992,7 +4005,7 @@ class GitHubAdvisory(GitHubArchiveSource):
             "reserved": None,
             "published": data.get("published"),
             "updated": data.get("modified"),
-            "title": data.get("summary") or "No Title Found",
+            "title": derive_cve_title(data.get("summary"), data.get("details")),
             "description": data.get("details"),
             "affected": affected,
             "cwe_ids": cwe_ids,
@@ -4361,6 +4374,64 @@ class MissingNucleiTemplates:
             f"[INFO] missing-templates: {total_cves} CVEs missing template, "
             f"{enriched} enriched in database"
         )
+        db.updateSource(
+            self.SOURCE_NAME,
+            started,
+            started,
+            datetime.now(timezone.utc).isoformat(),
+        )
+
+
+class TitleBackfill:
+    """
+    Backfill retroativo de títulos.
+
+    Re-deriva o título de CVEs já existentes que continuam com 'No Title Found'
+    (ou título vazio/nulo) a partir da própria description.
+
+    Necessário porque a ingestão de CVEs (cvelistV5) é incremental — só reprocessa
+    os deltas —, então as CVEs armazenadas antes do fix de derivação de título nunca
+    são reparseadas e mantêm o placeholder. Reutiliza exatamente derive_cve_title,
+    é idempotente e não faz chamadas de rede: após a 1ª passagem só sobram CVEs sem
+    description (não deriváveis), que o WHERE já exclui.
+    """
+
+    SOURCE_NAME = "title-backfill"
+
+    def run(self, db: "databaseSQLite", batch_size: int = 5000) -> None:
+        db.createTable()
+
+        started = datetime.now(timezone.utc).isoformat()
+
+        rows = db.cursor.execute(
+            """
+            SELECT cve_id, description
+            FROM cves
+            WHERE (title IS NULL OR title = '' OR title = 'No Title Found')
+              AND description IS NOT NULL
+              AND TRIM(description) <> ''
+            """
+        ).fetchall()
+
+        total = len(rows)
+        updated = 0
+        print(f"[INFO] title-backfill: {total} CVEs candidatas a re-derivação de título")
+
+        for cve_id, description in rows:
+            new_title = derive_cve_title(None, description)
+            if new_title == "No Title Found":
+                continue
+            db.cursor.execute(
+                "UPDATE cves SET title = ? WHERE cve_id = ?",
+                (new_title, cve_id),
+            )
+            updated += 1
+            if updated % batch_size == 0:
+                db.conn.commit()
+                print(f"  [INFO] title-backfill: {updated}/{total} títulos atualizados")
+
+        db.conn.commit()
+        print(f"[INFO] title-backfill: {updated} títulos derivados da description")
         db.updateSource(
             self.SOURCE_NAME,
             started,
@@ -5124,6 +5195,7 @@ def main() -> None:
             "kev",
             "wordfence-nuclei",
             "missing-templates",
+            "backfill-titles",
             "update-fixes",
             "manifest",
             "all",
@@ -5141,6 +5213,7 @@ def main() -> None:
             "'osv-npm' (override repo npm names from the OSV npm feed, CVE->package), "
             "'npm' (enrich repos with npm package metadata using the scanned name), "
             "'packagist' (enrich repos with Packagist package metadata using the scanned name), "
+            "'backfill-titles' (re-derive 'No Title Found' titles from description, retroactive), "
             "'update-fixes' (recalculate commits_fix), "
             "'manifest' (generate public/db/manifest.json), "
             "'all' (cves+repos+advisories+pocs+nuclei+wordpress+scan-manifests+osv-npm+npm+packagist+manifest)"
@@ -5340,6 +5413,13 @@ def main() -> None:
         db_path = CVElistV5.DATA_DIR / "source.sqlite"
         db = databaseSQLite(db_path)
         MissingNucleiTemplates().run(db)
+        db.conn.close()
+
+    if args.command in ["backfill-titles", "all"]:
+        print("[INFO] Backfilling CVE titles from description (retroactive)...")
+        db_path = CVElistV5.DATA_DIR / "source.sqlite"
+        db = databaseSQLite(db_path)
+        TitleBackfill().run(db)
         db.conn.close()
 
     if args.command in ["wordpress", "all"]:

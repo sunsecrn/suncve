@@ -104,6 +104,10 @@ jobs:
         run: |
           python scripts/create-manifest.py advisories ${{ github.event.inputs.advisories_full == 'true' && '--full' || '' }}
 
+      - name: Backfill CVE Titles (retroactive)
+        run: |
+          python scripts/create-manifest.py backfill-titles
+
       - name: Enrich POCs from PoC-in-GitHub
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
