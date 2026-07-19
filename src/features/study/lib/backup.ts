@@ -22,7 +22,8 @@ function currentData(): StudyData {
     notes: s.notes,
     labels: s.labels,
     cveLabels: s.cveLabels,
-    history: s.history
+    history: s.history,
+    seeded: s.seeded
   };
 }
 
@@ -155,7 +156,9 @@ function normalizeStudyData(raw: unknown): StudyData {
     notes: coerceStringRecord(d.notes),
     labels: coerceLabels(d.labels),
     cveLabels: coerceCveLabels(d.cveLabels),
-    history: coerceHistory(d.history)
+    history: coerceHistory(d.history),
+    // Datasets importados são de usuários já estabelecidos: não re-semear defaults.
+    seeded: d.seeded === undefined ? true : Boolean(d.seeded)
   };
 }
 

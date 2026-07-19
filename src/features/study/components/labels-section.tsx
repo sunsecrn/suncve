@@ -86,15 +86,19 @@ export function LabelsSection({
   };
 
   return (
-    <div className='grid gap-4 md:grid-cols-[280px_1fr]'>
-      {/* Coluna esquerda: criar + lista de labels */}
+    <div className='grid gap-6 md:grid-cols-[300px_1fr]'>
+      {/* Rail esquerdo: criar + listas */}
       <div className='space-y-4'>
-        <div className='bg-card space-y-2 rounded-lg border p-3'>
+        {/* Criar nova lista */}
+        <div className='bg-card space-y-3 rounded-xl border p-4'>
+          <p className='text-muted-foreground text-xs font-semibold tracking-wide uppercase'>
+            {t('create')}
+          </p>
           <Input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder={t('namePlaceholder')}
-            className='h-8'
+            className='h-9'
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -102,7 +106,7 @@ export function LabelsSection({
               }
             }}
           />
-          <div className='flex flex-wrap items-center gap-1.5'>
+          <div className='flex flex-wrap items-center gap-2'>
             {LABEL_COLORS.map((color) => (
               <button
                 key={color}
@@ -113,7 +117,7 @@ export function LabelsSection({
                   'h-5 w-5 rounded-full transition-all',
                   LABEL_COLOR_META[color].dot,
                   newColor === color
-                    ? 'ring-foreground ring-2 ring-offset-1'
+                    ? 'ring-foreground ring-2 ring-offset-2'
                     : 'opacity-60 hover:opacity-100'
                 )}
               />
@@ -126,114 +130,147 @@ export function LabelsSection({
             disabled={!newName.trim()}
           >
             <IconPlus className='h-4 w-4' />
-            {t('create')}
+            {t('add')}
           </Button>
         </div>
 
+        {/* Lista de labels */}
         <div className='space-y-1'>
-          {labels.length === 0 && (
-            <p className='text-muted-foreground px-1 text-xs'>{t('empty')}</p>
-          )}
-          {labels.map((label) => {
-            const meta = getLabelColorMeta(label.color);
-            const isSelected = selectedId === label.id;
-            return (
-              <div
-                key={label.id}
-                className={cn(
-                  'group hover:bg-muted flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors',
-                  isSelected && 'bg-muted'
-                )}
-              >
-                {renaming === label.id ? (
-                  <>
-                    <span className={cn('h-3 w-3 shrink-0 rounded-full', meta.dot)} />
-                    <Input
-                      autoFocus
-                      value={renameValue}
-                      onChange={(e) => setRenameValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') commitRename();
-                        if (e.key === 'Escape') setRenaming(null);
-                      }}
-                      className='h-6 flex-1 px-1 text-sm'
-                    />
-                    <button
-                      type='button'
-                      onClick={commitRename}
-                      className='text-primary shrink-0'
-                      aria-label={t('rename')}
-                    >
-                      <IconCheck className='h-4 w-4' />
-                    </button>
-                    <button
-                      type='button'
-                      onClick={() => setRenaming(null)}
-                      className='text-muted-foreground shrink-0'
-                      aria-label='cancel'
-                    >
-                      <IconX className='h-4 w-4' />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      type='button'
-                      onClick={() => setSelectedId(label.id)}
-                      className='flex min-w-0 flex-1 items-center gap-2 text-left text-sm'
-                    >
+          {labels.length === 0 ? (
+            <p className='text-muted-foreground px-1 py-2 text-xs'>
+              {t('empty')}
+            </p>
+          ) : (
+            labels.map((label) => {
+              const meta = getLabelColorMeta(label.color);
+              const isSelected = selectedId === label.id;
+              const isRenaming = renaming === label.id;
+              return (
+                <div
+                  key={label.id}
+                  className={cn(
+                    'group flex items-center gap-2 rounded-lg border border-transparent px-2.5 py-2 transition-colors',
+                    isSelected
+                      ? 'bg-muted border-border'
+                      : 'hover:bg-muted/60'
+                  )}
+                >
+                  {isRenaming ? (
+                    <>
                       <span
                         className={cn('h-3 w-3 shrink-0 rounded-full', meta.dot)}
                       />
-                      <span className='truncate'>{label.name}</span>
-                      <span className='text-muted-foreground ml-auto text-xs tabular-nums'>
-                        {counts[label.id] ?? 0}
-                      </span>
-                    </button>
-                    <button
-                      type='button'
-                      onClick={() => startRename(label.id, label.name)}
-                      className='text-muted-foreground hover:text-foreground shrink-0 opacity-0 transition-opacity group-hover:opacity-100'
-                      aria-label={t('rename')}
-                    >
-                      <IconPencil className='h-3.5 w-3.5' />
-                    </button>
-                    <button
-                      type='button'
-                      onClick={() => handleDelete(label.id)}
-                      className='text-muted-foreground hover:text-destructive shrink-0 opacity-0 transition-opacity group-hover:opacity-100'
-                      aria-label={t('delete')}
-                    >
-                      <IconTrash className='h-3.5 w-3.5' />
-                    </button>
-                  </>
-                )}
-              </div>
-            );
-          })}
+                      <Input
+                        autoFocus
+                        value={renameValue}
+                        onChange={(e) => setRenameValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') commitRename();
+                          if (e.key === 'Escape') setRenaming(null);
+                        }}
+                        className='h-6 flex-1 px-1 text-sm'
+                      />
+                      <button
+                        type='button'
+                        onClick={commitRename}
+                        className='text-primary shrink-0'
+                        aria-label={t('rename')}
+                      >
+                        <IconCheck className='h-4 w-4' />
+                      </button>
+                      <button
+                        type='button'
+                        onClick={() => setRenaming(null)}
+                        className='text-muted-foreground shrink-0'
+                        aria-label='cancel'
+                      >
+                        <IconX className='h-4 w-4' />
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type='button'
+                        onClick={() => setSelectedId(label.id)}
+                        className='flex min-w-0 flex-1 items-center gap-2.5 text-left text-sm'
+                      >
+                        <span
+                          className={cn(
+                            'h-3 w-3 shrink-0 rounded-full',
+                            meta.dot
+                          )}
+                        />
+                        <span className='truncate font-medium'>
+                          {label.name}
+                        </span>
+                        <span className='bg-muted-foreground/15 text-muted-foreground ml-auto rounded-full px-2 py-0.5 text-xs tabular-nums'>
+                          {counts[label.id] ?? 0}
+                        </span>
+                      </button>
+                      <button
+                        type='button'
+                        onClick={() => startRename(label.id, label.name)}
+                        className='text-muted-foreground hover:text-foreground shrink-0 opacity-0 transition-opacity group-hover:opacity-100'
+                        aria-label={t('rename')}
+                      >
+                        <IconPencil className='h-3.5 w-3.5' />
+                      </button>
+                      <button
+                        type='button'
+                        onClick={() => handleDelete(label.id)}
+                        className='text-muted-foreground hover:text-destructive shrink-0 opacity-0 transition-opacity group-hover:opacity-100'
+                        aria-label={t('delete')}
+                      >
+                        <IconTrash className='h-3.5 w-3.5' />
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
-      {/* Coluna direita: CVEs da label selecionada */}
+      {/* Painel direito: CVEs da lista selecionada */}
       <div className='min-w-0'>
         {!selected ? (
           <EmptyState icon={IconTag} title={t('selectHint')} />
-        ) : cveIdsInSelected.length === 0 ? (
-          <EmptyState icon={IconTag} title={t('emptyList')} />
         ) : (
-          <div className='grid gap-3 sm:grid-cols-2'>
-            {cveIdsInSelected.map((cveId) => {
-              const snap = snapshots[cveId] ?? fallbackCveSnapshot(cveId);
-              return (
-                <CveMiniCard
-                  key={cveId}
-                  snapshot={snap}
-                  onOpen={onOpenCve}
-                  onRemove={() => toggleCveLabel(cveId, selected.id, snap)}
-                  removeLabel={t('removeFromList')}
-                />
-              );
-            })}
+          <div className='space-y-4'>
+            <div className='flex items-center gap-2.5 border-b pb-3'>
+              <span
+                className={cn(
+                  'h-4 w-4 shrink-0 rounded-full',
+                  getLabelColorMeta(selected.color).dot
+                )}
+              />
+              <h3 className='truncate text-lg font-semibold'>
+                {selected.name}
+              </h3>
+              <span className='bg-muted text-muted-foreground rounded-full px-2.5 py-0.5 text-xs tabular-nums'>
+                {cveIdsInSelected.length}
+              </span>
+            </div>
+
+            {cveIdsInSelected.length === 0 ? (
+              <EmptyState icon={IconTag} title={t('emptyList')} />
+            ) : (
+              <div className='grid gap-3 sm:grid-cols-2'>
+                {cveIdsInSelected.map((cveId) => {
+                  const snap = snapshots[cveId] ?? fallbackCveSnapshot(cveId);
+                  return (
+                    <CveMiniCard
+                      key={cveId}
+                      snapshot={snap}
+                      onOpen={onOpenCve}
+                      onRemove={() => toggleCveLabel(cveId, selected.id, snap)}
+                      removeLabel={t('removeFromList')}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>

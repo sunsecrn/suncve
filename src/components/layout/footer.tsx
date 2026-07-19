@@ -83,7 +83,7 @@ export default function Footer() {
   if (!ready) return null;
 
   return (
-    <footer className='bg-background shrink-0 border-t'>
+    <footer className='bg-background mt-auto shrink-0 border-t'>
       <div className='mx-auto w-full max-w-7xl px-4 py-10 md:px-6'>
         <div className='grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5'>
           {/* Brand */}

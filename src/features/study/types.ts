@@ -55,7 +55,20 @@ export interface StudyData {
   labels: Label[];
   cveLabels: Record<string, string[]>; // cve_id -> labelId[]
   history: HistoryEntry[]; // mais recente primeiro, cap HISTORY_LIMIT
+  seeded: boolean; // se as labels padrão já foram semeadas uma vez
 }
+
+/** Labels de estudo criadas automaticamente na primeira vez (uma vez só). */
+export const DEFAULT_LABELS: {
+  namePtBR: string;
+  nameEn: string;
+  color: LabelColor;
+}[] = [
+  { namePtBR: 'Estudar mais tarde', nameEn: 'Study later', color: 'blue' },
+  { namePtBR: 'Aprendendo', nameEn: 'Learning', color: 'amber' },
+  { namePtBR: 'Importante', nameEn: 'Important', color: 'red' },
+  { namePtBR: 'Dominado', nameEn: 'Mastered', color: 'green' }
+];
 
 /** Formato do arquivo de export/import. */
 export interface StudyExport {

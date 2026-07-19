@@ -1,14 +1,24 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { IconStar, IconX, IconExternalLink } from '@tabler/icons-react';
+import { useLocale } from 'next-intl';
+import {
+  IconStar,
+  IconX,
+  IconExternalLink,
+  IconCalendar
+} from '@tabler/icons-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { getSeverityColor } from '@/features/search/types';
 import { getEcosystemMeta } from '@/lib/ecosystem';
+import { formatDateLocalized } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import type { CveSnapshot, RepoSnapshot } from '../types';
+import { useStudyStore } from '../store/use-study-store';
+import { getLabelColorMeta, type CveSnapshot, type RepoSnapshot } from '../types';
+
+const EMPTY: string[] = [];
 
 interface CveMiniCardProps {
   snapshot: CveSnapshot;
@@ -25,6 +35,13 @@ export function CveMiniCard({
   removeLabel,
   footer
 }: CveMiniCardProps) {
+  const locale = useLocale();
+  const labelIds = useStudyStore((s) => s.cveLabels[snapshot.cve_id]) ?? EMPTY;
+  const labels = useStudyStore((s) => s.labels);
+  const chips = labelIds
+    .map((id) => labels.find((l) => l.id === id))
+    .filter((l): l is NonNullable<typeof l> => Boolean(l));
+
   return (
     <Card
       role='button'
@@ -36,37 +53,65 @@ export function CveMiniCard({
           onOpen(snapshot.cve_id);
         }
       }}
-      className='hover:border-primary/50 cursor-pointer gap-0 p-3 transition-colors'
+      className='hover:border-primary/50 hover:bg-muted/40 cursor-pointer gap-0 p-4 transition-colors'
     >
-      <div className='flex items-start justify-between gap-2'>
-        <div className='min-w-0 flex-1'>
+      <div className='flex items-start justify-between gap-3'>
+        <div className='min-w-0 flex-1 space-y-2'>
           <div className='flex flex-wrap items-center gap-2'>
-            <span className='font-mono text-sm font-semibold'>
+            <span className='font-mono text-base font-semibold break-all'>
               {snapshot.cve_id}
             </span>
             {snapshot.cvss != null && (
               <Badge
                 className={cn(
-                  'px-2 py-0 font-mono text-xs',
+                  'px-2 py-0.5 font-mono text-xs',
                   getSeverityColor(snapshot.severity)
                 )}
               >
-                {snapshot.cvss.toFixed(1)}
+                {snapshot.cvss.toFixed(1)} · {snapshot.severity.toUpperCase()}
               </Badge>
             )}
           </div>
+
           {snapshot.title && (
-            <p className='text-muted-foreground mt-1 line-clamp-2 text-xs'>
+            <p className='text-foreground/90 line-clamp-2 text-sm leading-snug'>
               {snapshot.title}
             </p>
           )}
+
+          {snapshot.date_published && (
+            <p className='text-muted-foreground flex items-center gap-1.5 text-xs'>
+              <IconCalendar className='h-3.5 w-3.5' />
+              <span className='tabular-nums'>
+                {formatDateLocalized(snapshot.date_published, locale)}
+              </span>
+            </p>
+          )}
+
+          {chips.length > 0 && (
+            <div className='flex flex-wrap gap-1.5 pt-0.5'>
+              {chips.map((label) => (
+                <span
+                  key={label.id}
+                  className={cn(
+                    'inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium',
+                    getLabelColorMeta(label.color).badge
+                  )}
+                >
+                  {label.name}
+                </span>
+              ))}
+            </div>
+          )}
+
           {footer}
         </div>
+
         {onRemove && (
           <Button
             variant='ghost'
             size='icon'
-            className='h-7 w-7 shrink-0'
+            className='h-8 w-8 shrink-0'
             aria-label={removeLabel}
             title={removeLabel}
             onClick={(e) => {
@@ -107,16 +152,16 @@ export function RepoMiniCard({
   const eco = getEcosystemMeta(snapshot.ecosystem);
   const EcoIcon = eco.Icon;
   return (
-    <Card className='gap-0 p-3'>
-      <div className='flex items-start justify-between gap-2'>
-        <div className='min-w-0 flex-1'>
+    <Card className='gap-0 p-4'>
+      <div className='flex items-start justify-between gap-3'>
+        <div className='min-w-0 flex-1 space-y-2'>
           <div className='flex items-center gap-2'>
             <EcoIcon className={cn('h-4 w-4 shrink-0', eco.textClass)} />
-            <span className='truncate font-mono text-sm'>
+            <span className='truncate font-mono text-sm font-medium'>
               {snapshot.fullpath}
             </span>
           </div>
-          <div className='text-muted-foreground mt-2 flex flex-wrap items-center gap-3 text-xs'>
+          <div className='text-muted-foreground flex flex-wrap items-center gap-3 text-xs'>
             <Badge variant='outline' className={cn('gap-1', eco.borderClass)}>
               <EcoIcon className='h-3 w-3' />
               {eco.label}
@@ -138,6 +183,7 @@ export function RepoMiniCard({
             rel='noopener noreferrer'
             className='text-muted-foreground hover:text-primary p-1 transition-colors'
             aria-label='external link'
+            onClick={(e) => e.stopPropagation()}
           >
             <IconExternalLink className='h-4 w-4' />
           </a>
@@ -145,7 +191,7 @@ export function RepoMiniCard({
             <Button
               variant='ghost'
               size='icon'
-              className='h-7 w-7'
+              className='h-8 w-8'
               aria-label={removeLabel}
               title={removeLabel}
               onClick={onRemove}

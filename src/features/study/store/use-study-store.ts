@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import {
+  DEFAULT_LABELS,
   HISTORY_LIMIT,
   type CveSnapshot,
   type Label,
@@ -28,6 +29,7 @@ interface StudyState extends StudyData {
   recordHistory: (snap: CveSnapshot) => void;
   removeHistoryEntry: (cveId: string) => void;
   clearHistory: () => void;
+  seedDefaultLabels: () => void;
   importData: (data: StudyData) => void;
 }
 
@@ -39,7 +41,8 @@ const initialData: StudyData = {
   notes: {},
   labels: [],
   cveLabels: {},
-  history: []
+  history: [],
+  seeded: false
 };
 
 function genId(): string {
@@ -160,6 +163,24 @@ export const useStudyStore = create<StudyState>()(
 
       clearHistory: () => set({ history: [] }),
 
+      seedDefaultLabels: () =>
+        set((state) => {
+          if (state.seeded) return {};
+          const locale =
+            typeof localStorage !== 'undefined'
+              ? localStorage.getItem('locale')
+              : null;
+          const usePt = locale !== 'en';
+          const now = Date.now();
+          const defaults: Label[] = DEFAULT_LABELS.map((d, i) => ({
+            id: genId(),
+            name: usePt ? d.namePtBR : d.nameEn,
+            color: d.color,
+            createdAt: now + i
+          }));
+          return { labels: [...state.labels, ...defaults], seeded: true };
+        }),
+
       importData: (data) =>
         set(() => ({
           snapshots: data.snapshots,
@@ -169,7 +190,8 @@ export const useStudyStore = create<StudyState>()(
           notes: data.notes,
           labels: data.labels,
           cveLabels: data.cveLabels,
-          history: data.history
+          history: data.history,
+          seeded: data.seeded
         }))
     }),
     {
@@ -184,11 +206,28 @@ export const useStudyStore = create<StudyState>()(
         notes: s.notes,
         labels: s.labels,
         cveLabels: s.cveLabels,
-        history: s.history
+        history: s.history,
+        seeded: s.seeded
       })
     }
   )
 );
+
+// Semeia as labels padrão uma única vez, assim que o store hidrata do IndexedDB.
+// Roda em qualquer página que use o store, então os defaults aparecem tanto na aba
+// quanto no popover de labels do drawer já na primeira carga.
+if (typeof window !== 'undefined') {
+  const maybeSeed = () => {
+    if (!useStudyStore.getState().seeded) {
+      useStudyStore.getState().seedDefaultLabels();
+    }
+  };
+  if (useStudyStore.persist.hasHydrated()) {
+    maybeSeed();
+  } else {
+    useStudyStore.persist.onFinishHydration(maybeSeed);
+  }
+}
 
 /**
  * Como o persist sobre IndexedDB reidrata de forma assíncrona, use este hook
