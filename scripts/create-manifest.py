@@ -853,7 +853,7 @@ class databaseSQLite:
             list_exploit JSON,
             list_commit JSON,
             list_references JSON,
-            exists_nuclei BOOLEAN,
+            exists_nuclei BOOLEAN DEFAULT 0,
             list_nuclei JSON
         )
         """)
@@ -862,7 +862,10 @@ class databaseSQLite:
         # para bancos antigos. Espelha o par exists_exploit/list_exploit.
         # list_nuclei é um array de {template_id, path, url} (só o link do template).
         for column_ddl in (
-            "ALTER TABLE cves ADD COLUMN exists_nuclei BOOLEAN",
+            # DEFAULT 0 para que, em bancos novos, CVEs sem template fiquem 0
+            # (o insert nao grava exists_nuclei). O enriquecimento nuclei marca 1
+            # quem tem template e normaliza NULLs remanescentes de bancos antigos.
+            "ALTER TABLE cves ADD COLUMN exists_nuclei BOOLEAN DEFAULT 0",
             "ALTER TABLE cves ADD COLUMN list_nuclei JSON",
         ):
             try:
@@ -3939,6 +3942,18 @@ class NucleiTemplates(GitHubArchiveSource):
             print(
                 f"[INFO] {self.SOURCE_NAME}: enriched {processed} CVEs (zip fallback)"
             )
+        # Normaliza o flag: CVEs sem template ficam explicitamente 0. A coluna nao
+        # tem valor gravado no insert, entao CVEs nunca enriquecidas ficam com NULL.
+        # Como em SQL 'NULL = 0' e falso, sem isso o filtro "sem Nuclei"
+        # (exists_nuclei = 0) nao retornaria essas CVEs. Roda apos o enriquecimento,
+        # que ja marcou 1 quem tem template.
+        normalized = db.cursor.execute(
+            "UPDATE cves SET exists_nuclei = 0 WHERE exists_nuclei IS NULL"
+        ).rowcount
+        db.conn.commit()
+        print(
+            f"[INFO] {self.SOURCE_NAME}: normalized {normalized} NULL exists_nuclei -> 0"
+        )
         db.updateSource(
             self.SOURCE_NAME, started, started, head_sha, base_release_file=head_sha
         )
