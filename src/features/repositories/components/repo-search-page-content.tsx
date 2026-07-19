@@ -12,6 +12,7 @@ import { RepoResultsTable } from './repo-results-table';
 import { RepoDetailDrawer } from './repo-detail-drawer';
 import { DatabaseLoader } from '@/features/search/components/database-loader';
 import { RepoStatsCards } from './repo-stats-cards';
+import { useContentReady } from '@/hooks/use-content-ready';
 import {
   type RepositorySearchResult,
   type RepositorySearchResultsPage,
@@ -40,6 +41,14 @@ function RepositorySearchPageContentInner() {
     loadDatabase,
     loadDatabaseWithManifest
   } = useSQLite();
+
+  // Reveal the layout footer only once the database is ready.
+  const setContentReady = useContentReady((s) => s.setReady);
+  useEffect(() => {
+    setContentReady(isReady);
+    return () => setContentReady(false);
+  }, [isReady, setContentReady]);
+
   const {
     search,
     getFilterOptions,

@@ -13,6 +13,7 @@ import { ResultsTable } from '@/features/search/components/results-table';
 import { CVEDetailDrawer } from '@/features/search/components/cve-detail-drawer';
 import { DatabaseLoader } from '@/features/search/components/database-loader';
 import { StatsCards } from '@/features/search/components/stats-cards';
+import { useContentReady } from '@/hooks/use-content-ready';
 import {
   type CVESearchResult,
   type SearchResultsPage
@@ -142,6 +143,13 @@ function SearchPageContentInner() {
 
   // Check if pending (filters changed but not yet applied)
   const isPending = filters !== debouncedFilters;
+
+  // Reveal the layout footer only once the database is ready.
+  const setContentReady = useContentReady((s) => s.setReady);
+  useEffect(() => {
+    setContentReady(isReady);
+    return () => setContentReady(false);
+  }, [isReady, setContentReady]);
 
   // Show loader while database is loading
   if (!isReady) {

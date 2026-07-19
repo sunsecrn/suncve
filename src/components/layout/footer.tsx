@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { IconBrandGithub, IconBrandInstagram } from '@tabler/icons-react';
 import { withBasePath } from '@/lib/base-path';
+import { useContentReady } from '@/hooks/use-content-ready';
 
 const GITHUB_ORG = 'https://github.com/sunsecrn';
 const GITHUB_REPO = 'https://github.com/sunsecrn/suncve';
@@ -18,6 +19,7 @@ interface FooterLink {
 
 export default function Footer() {
   const t = useTranslations('footer');
+  const ready = useContentReady((s) => s.ready);
   const year = new Date().getFullYear();
 
   const navLinks: FooterLink[] = [
@@ -76,6 +78,9 @@ export default function Footer() {
     { title: t('resources'), links: resourceLinks },
     { title: t('sources'), links: sourceLinks }
   ];
+
+  // Only show once the page content has loaded (avoids floating under a loader).
+  if (!ready) return null;
 
   return (
     <footer className='bg-background shrink-0 border-t'>

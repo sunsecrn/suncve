@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import PageContainer from '@/components/layout/page-container';
 import React, { useEffect } from 'react';
 import { WelcomeHeader } from '@/features/overview/components/welcome-header';
+import { useContentReady } from '@/hooks/use-content-ready';
 import { SQLiteProvider, useSQLite } from '@/lib/sqlite';
 import { DB_MANIFEST_URL, DB_FALLBACK_URL } from '@/lib/db-config';
 import { DatabaseLoader } from '@/features/search/components/database-loader';
@@ -35,6 +36,14 @@ function OverViewLayoutInner({
     loadDatabase,
     loadDatabaseWithManifest
   } = useSQLite();
+
+  const setContentReady = useContentReady((s) => s.setReady);
+
+  // Reveal the layout footer only once the DB (and thus the charts) is ready.
+  useEffect(() => {
+    setContentReady(isReady);
+    return () => setContentReady(false);
+  }, [isReady, setContentReady]);
 
   // Set page title
   useEffect(() => {

@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useContentReady } from '@/hooks/use-content-ready';
 import type { Icon as TablerIcon } from '@tabler/icons-react';
 import {
   IconGitCommit,
@@ -68,6 +70,13 @@ function SectionHeading({
 
 export default function ReadmePageContent() {
   const t = useTranslations('readme');
+
+  // Static page — content is ready on mount; reveal the layout footer.
+  const setContentReady = useContentReady((s) => s.setReady);
+  useEffect(() => {
+    setContentReady(true);
+    return () => setContentReady(false);
+  }, [setContentReady]);
 
   const purposeItems = [
     {
@@ -247,7 +256,7 @@ export default function ReadmePageContent() {
   ];
 
   return (
-    <div className='flex min-h-0 flex-col p-4 pb-8 md:px-6'>
+    <div className='flex flex-1 flex-col p-4 pb-8 md:px-6'>
       {/* Page header */}
       <div className='mb-6'>
         <h1 className='text-2xl font-bold tracking-tight'>{t('title')}</h1>
