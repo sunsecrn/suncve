@@ -62,7 +62,12 @@
     "criticalPercentage": "{percentage}% são críticas",
     "criticalCVEs": "CVEs Críticas com Exploit",
     "criticalCVEsDescription": "Top 5 vulnerabilidades críticas recentes com exploit disponível",
-    "noCriticalCVEs": "Nenhuma CVE crítica com Exploit encontrada"
+    "noCriticalCVEs": "Nenhuma CVE crítica com Exploit encontrada",
+    "tagExploit": "Exploit disponível",
+    "tagCommit": "Commit de correção disponível",
+    "tagNuclei": "Template Nuclei",
+    "tagKev": "No CISA KEV",
+    "tagMissing": "Template pendente (comunidade)"
   },
   "themes": {
     "default": "Padrão",

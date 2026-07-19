@@ -14,7 +14,14 @@ import {
   useDashboardStats,
   type CriticalCVEWithPOC
 } from '@/lib/sqlite/use-dashboard-stats';
-import { IconBug, IconAlertTriangle } from '@tabler/icons-react';
+import {
+  IconBug,
+  IconAlertTriangle,
+  IconSkull,
+  IconGitCommit,
+  IconTargetArrow,
+  IconShieldExclamation
+} from '@tabler/icons-react';
 import { CVEDetailDrawer } from '@/features/search/components/cve-detail-drawer';
 import { useCVESearch } from '@/lib/sqlite/use-cve-search';
 
@@ -95,13 +102,60 @@ export function CriticalCVEs() {
                   <IconBug className='h-4 w-4 text-red-600 dark:text-red-400' />
                 </div>
                 <div className='min-w-0 flex-1 space-y-1'>
-                  <div className='flex items-center gap-2'>
+                  <div className='flex flex-wrap items-center gap-2'>
                     <p className='font-mono text-sm leading-none font-medium'>
                       {cve.cve_id}
                     </p>
                     <Badge variant='destructive' className='text-xs'>
                       {cve.score?.toFixed(1) ?? '-'}
                     </Badge>
+                    <div className='flex flex-nowrap gap-1'>
+                      {cve.exists_exploit ? (
+                        <Badge
+                          variant='destructive'
+                          className='px-1'
+                          title={t('tagExploit')}
+                        >
+                          <IconSkull className='h-3 w-3' />
+                        </Badge>
+                      ) : null}
+                      {cve.exists_commit ? (
+                        <Badge
+                          variant='secondary'
+                          className='bg-green-500/20 px-1 text-green-700 dark:text-green-400'
+                          title={t('tagCommit')}
+                        >
+                          <IconGitCommit className='h-3 w-3' />
+                        </Badge>
+                      ) : null}
+                      {cve.exists_nuclei ? (
+                        <Badge
+                          variant='secondary'
+                          className='bg-cyan-500/20 px-1 text-cyan-700 dark:text-cyan-400'
+                          title={t('tagNuclei')}
+                        >
+                          <IconTargetArrow className='h-3 w-3' />
+                        </Badge>
+                      ) : null}
+                      {cve.in_kev ? (
+                        <Badge
+                          variant='secondary'
+                          className='bg-amber-500/20 px-1 text-amber-700 dark:text-amber-400'
+                          title={t('tagKev')}
+                        >
+                          <IconShieldExclamation className='h-3 w-3' />
+                        </Badge>
+                      ) : null}
+                      {cve.missing_nuclei_template ? (
+                        <Badge
+                          variant='outline'
+                          className='border-dashed border-purple-500/50 px-1 text-purple-600 dark:text-purple-400'
+                          title={t('tagMissing')}
+                        >
+                          <IconTargetArrow className='h-3 w-3 opacity-50' />
+                        </Badge>
+                      ) : null}
+                    </div>
                   </div>
                   <p className='text-muted-foreground truncate text-xs'>
                     {truncateText(cve.title || cve.description, 60)}

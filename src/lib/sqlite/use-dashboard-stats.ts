@@ -27,6 +27,12 @@ export interface CriticalCVEWithPOC {
   description: string | null;
   score: number;
   date_published: string;
+  // Source flags (SQLite booleans, 0 | 1) — for tags shown next to the CVSS
+  exists_exploit: number;
+  exists_commit: number;
+  exists_nuclei: number;
+  in_kev: number;
+  missing_nuclei_template: number;
 }
 
 export interface CVEsByPeriod {
@@ -163,13 +169,23 @@ export function useDashboardStats() {
       description: string | null;
       score: number;
       date_published: string;
+      exists_exploit: number;
+      exists_commit: number;
+      exists_nuclei: number;
+      in_kev: number;
+      missing_nuclei_template: number;
     }>(`
-      SELECT 
+      SELECT
         c.cve_id,
         c.title,
         c.description,
         (SELECT MAX(score) FROM cve_scores WHERE cve_id = c.cve_id) as score,
-        c.date_published
+        c.date_published,
+        c.exists_exploit,
+        c.exists_commit,
+        c.exists_nuclei,
+        c.in_kev,
+        c.missing_nuclei_template
       FROM cves c
       WHERE c.exists_exploit = 1
         AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)

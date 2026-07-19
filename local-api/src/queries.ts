@@ -894,7 +894,9 @@ export class SunCveQueries {
     return this.db.all(
       `SELECT c.cve_id, c.title, c.description,
         (SELECT MAX(score) FROM cve_scores WHERE cve_id = c.cve_id) as score,
-        c.date_published
+        c.date_published,
+        c.exists_exploit, c.exists_commit, c.exists_nuclei,
+        c.in_kev, c.missing_nuclei_template
       FROM cves c
       WHERE c.exists_exploit = 1
         AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)
