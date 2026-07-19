@@ -67,7 +67,7 @@
     "tagCommit": "Fix commit available",
     "tagNuclei": "Nuclei template",
     "tagKev": "In CISA KEV",
-    "tagMissing": "Pending template (community)"
+    "tagMissing": "Pending template"
   },
   "themes": {
     "default": "Default",
@@ -203,7 +203,9 @@
       "hasCommitFix": "Has Commit Fix",
       "hasNuclei": "Has Nuclei",
       "hasKev": "In KEV (CISA)",
-      "hasMissingTemplate": "Pending template (community)",
+      "hasKevHelp": "Filters CVEs listed in the CISA KEV (Known Exploited Vulnerabilities) catalog — vulnerabilities with evidence of active, real-world exploitation confirmed by CISA. Being listed signals remediation priority and carries a remediation due date (for US federal agencies).",
+      "hasMissingTemplate": "Pending template",
+      "hasMissingTemplateHelp": "This filter comes from the missing-cve-nuclei-templates project, which consumes trickest/cve data and applies its own criteria: keywords in the title/description (XSS, SQLi, open redirect, etc.) and the maintainer's manual judgment of what is \"suitable for Nuclei\" — i.e. a remote web/network vulnerability, since Nuclei is an HTTP/network-oriented scanner.",
       "ecosystem": "Ecosystem",
       "ecosystemAll": "All",
       "popDownloads": "Downloads",
@@ -259,7 +261,7 @@
       "nuclei": "Nuclei Templates",
       "nucleiSources": "Sources:",
       "references": "References",
-      "hasMissingTemplate": "Pending template (community)",
+      "hasMissingTemplate": "Pending template",
       "missingTemplateDescription": "This CVE has no template in the official Nuclei repository. It is listed by the community as a missing template.",
       "kevViewCatalog": "View in CISA KEV catalog",
       "openExternalLink": "Open external link",
@@ -389,7 +391,7 @@
       "severity": "Severity: critical, high, medium, and low",
       "cwe": "Individual CWE and by vulnerability category",
       "flags": "Has exploit, has repository, and has fix commit",
-      "detection": "Has Nuclei template, in CISA KEV, and pending template (community)",
+      "detection": "Has Nuclei template, in CISA KEV, and pending template",
       "ecosystem": "Ecosystem: GitHub, WordPress, npm or Packagist",
       "popularity": "Package downloads range (npm/Packagist/WordPress)",
       "language": "Programming language",

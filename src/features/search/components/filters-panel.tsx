@@ -7,7 +7,8 @@ import {
   IconChevronDown,
   IconChevronUp,
   IconX,
-  IconLoader2
+  IconLoader2,
+  IconHelpCircle
 } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -123,7 +124,13 @@ export function FiltersPanel({
 
   const handleBooleanFilter = useCallback(
     (
-      key: 'hasExploit' | 'hasRepository' | 'hasCommitFix' | 'hasNuclei' | 'hasKev' | 'hasMissingTemplate',
+      key:
+        | 'hasExploit'
+        | 'hasRepository'
+        | 'hasCommitFix'
+        | 'hasNuclei'
+        | 'hasKev'
+        | 'hasMissingTemplate',
       value: boolean | null
     ) => {
       onFiltersChange({ ...filters, [key]: value });
@@ -437,14 +444,20 @@ export function FiltersPanel({
                 />
               </div>
               <div className='flex items-center justify-between'>
-                <span className='text-sm'>{t('hasKev')}</span>
+                <div className='flex items-center gap-1.5'>
+                  <span className='text-sm'>{t('hasKev')}</span>
+                  <FilterHelp text={t('hasKevHelp')} />
+                </div>
                 <TriStateSwitch
                   value={filters.hasKev}
                   onChange={(v) => handleBooleanFilter('hasKev', v)}
                 />
               </div>
               <div className='flex items-center justify-between'>
-                <span className='text-sm'>{t('hasMissingTemplate')}</span>
+                <div className='flex items-center gap-1.5'>
+                  <span className='text-sm'>{t('hasMissingTemplate')}</span>
+                  <FilterHelp text={t('hasMissingTemplateHelp')} />
+                </div>
                 <TriStateSwitch
                   value={filters.hasMissingTemplate}
                   onChange={(v) => handleBooleanFilter('hasMissingTemplate', v)}
@@ -662,6 +675,29 @@ function TriStateSwitch({
     >
       {value === null ? '—' : value ? 'Yes' : 'No'}
     </Button>
+  );
+}
+
+function FilterHelp({ text }: { text: string }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type='button'
+          aria-label={text}
+          className='text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex shrink-0 rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none'
+        >
+          <IconHelpCircle className='h-4 w-4' />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        side='top'
+        align='start'
+        className='w-72 text-sm leading-relaxed'
+      >
+        <p className='text-muted-foreground'>{text}</p>
+      </PopoverContent>
+    </Popover>
   );
 }
 
