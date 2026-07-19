@@ -156,7 +156,7 @@ function SearchPageContentInner() {
   }
 
   return (
-    <div className='flex min-h-0 flex-col p-4 pb-8 md:px-6'>
+    <div className='flex flex-1 flex-col p-4 pb-8 md:px-6'>
       {/* Header */}
       <div className='mb-4'>
         <h1 className='text-2xl font-bold tracking-tight'>{t('title')}</h1>

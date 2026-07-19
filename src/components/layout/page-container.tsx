@@ -49,9 +49,11 @@ export default function PageContainer({
 
   const content = isloading ? <PageSkeleton /> : children;
 
-  // Scroll is handled by SidebarInset - no need for internal scroll
+  // Scroll is handled by SidebarInset. Use flex-1 (grow to fill + grow with
+  // content) WITHOUT min-h-0 so tall content expands the box instead of
+  // overflowing it — otherwise a sibling footer would overlap the overflow.
   return (
-    <div className='flex min-h-0 flex-1 flex-col p-4 pb-8 md:px-6'>
+    <div className='flex flex-1 flex-col p-4 pb-8 md:px-6'>
       <div className='mb-4 flex items-start justify-between'>
         <Heading title={pageTitle ?? ''} description={pageDescription ?? ''} />
         {pageHeaderAction && <div>{pageHeaderAction}</div>}
