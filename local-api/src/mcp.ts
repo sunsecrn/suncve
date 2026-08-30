@@ -33,6 +33,11 @@ const CVE_FILTER_PROPS = {
     type: 'string',
     description: 'Comma-separated: critical,high,medium,low,none'
   },
+  epss: {
+    type: 'string',
+    description:
+      'Comma-separated EPSS buckets: very-low (<1%), low (1-10%), moderate (10-36%), high (36-70%), critical (>=70%)'
+  },
   cwes: { type: 'string', description: 'Comma-separated CWE ids, e.g. CWE-79,CWE-89' },
   cwe_cat: { type: 'string', description: 'CWE category id (rce, xss, sqli, ...)' },
   exploit: { type: 'boolean', description: 'Only CVEs with/without a public exploit' },
@@ -58,7 +63,7 @@ const CVE_FILTER_PROPS = {
   repo_filter: { type: 'string', description: 'Exact repository fullpath owner/name' },
   sort: {
     type: 'string',
-    description: 'cve_id|date_published|date_updated|score|stars'
+    description: 'cve_id|date_published|date_updated|score|epss|stars'
   },
   order: { type: 'string', description: 'asc | desc' },
   page: { type: 'number' },

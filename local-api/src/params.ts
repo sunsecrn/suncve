@@ -15,6 +15,7 @@ import {
   type RepositorySortField
 } from './types.js';
 import type { Severity } from './severity.js';
+import { EPSS_LEVELS, type EpssFilterLevel } from './epss.js';
 
 export type ParamRecord = Record<string, unknown>;
 
@@ -100,6 +101,9 @@ export function parseCveFilters(rec: ParamRecord): SearchFilters {
   const severity = csv(rec, 'severity').filter((s): s is Severity =>
     (SEVERITIES as string[]).includes(s)
   );
+  const epssLevel = csv(rec, 'epss').filter((l): l is EpssFilterLevel =>
+    (EPSS_LEVELS as string[]).includes(l)
+  );
   const periodRaw = str(rec, 'period');
   const datePeriod: DatePeriod = (DATE_PERIODS as string[]).includes(
     periodRaw ?? ''
@@ -113,6 +117,7 @@ export function parseCveFilters(rec: ParamRecord): SearchFilters {
     cvssMin: numOr(rec, 'cvssMin', 0),
     cvssMax: numOr(rec, 'cvssMax', 10),
     severity,
+    epssLevel,
     cwes: csv(rec, 'cwes'),
     hasExploit: triBool(rec, 'exploit'),
     hasRepository: triBool(rec, 'repo'),
