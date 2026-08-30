@@ -280,7 +280,8 @@
       "epssProbability": "Probability (30 days)",
       "epssPercentile": "Percentile",
       "epssDate": "Score date",
-      "epssSource": "Scores from empiricalsec/epss_scores (FIRST)"
+      "epssSource": "Scores from empiricalsec/epss_scores (FIRST)",
+      "epssNotPublished": "This CVE does not have a published EPSS score yet."
     }
   },
   "repositories": {
