@@ -445,6 +445,7 @@
     "description": "Your favorites, notes, history and study lists — saved in this browser.",
     "dbLoading": "Loading the database to open details…",
     "cveNotFound": "Couldn't load {id}.",
+    "repoNotFound": "Couldn't load {path}.",
     "actions": {
       "favorite": "Favorite",
       "favorited": "Favorited",
