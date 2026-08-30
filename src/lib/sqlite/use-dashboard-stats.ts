@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useSQLite } from './sqlite-context';
+import type { EpssCounts } from '@/features/search/types';
 
 // Types for dashboard data
 export interface DashboardStats {
@@ -11,7 +12,6 @@ export interface DashboardStats {
   newWithExploit: number;
   newWithFix: number;
   newInKev: number;
-  newHighEpss: number;
 }
 
 export interface SeverityDistribution {
@@ -20,6 +20,12 @@ export interface SeverityDistribution {
   medium: number;
   low: number;
   unknown: number;
+}
+
+// Distribuição do catálogo pelas cinco faixas de EPSS, mais as CVEs que ainda
+// não têm score publicado (que não é o mesmo que probabilidade zero).
+export interface EpssDistributionStats extends EpssCounts {
+  unscored: number;
 }
 
 export interface CriticalCVEWithPOC {
@@ -71,8 +77,7 @@ export function useDashboardStats() {
         newCriticalCVEs: 0,
         newWithExploit: 0,
         newWithFix: 0,
-        newInKev: 0,
-        newHighEpss: 0
+        newInKev: 0
       };
     }
 
@@ -86,7 +91,6 @@ export function useDashboardStats() {
       newWithFix: number;
       newCriticalCVEs: number;
       newInKev: number;
-      newHighEpss: number;
     }>(
       `
       SELECT 
@@ -97,10 +101,9 @@ export function useDashboardStats() {
          WHERE c.date_published >= ? 
          AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)
         ) as newCriticalCVEs,
-        (SELECT COUNT(*) FROM cves WHERE date_published >= ? AND in_kev = 1) as newInKev,
-        (SELECT COUNT(*) FROM cves WHERE date_published >= ? AND epss >= 0.1) as newHighEpss
+        (SELECT COUNT(*) FROM cves WHERE date_published >= ? AND in_kev = 1) as newInKev
     `,
-      [dateStr, dateStr, dateStr, dateStr, dateStr, dateStr]
+      [dateStr, dateStr, dateStr, dateStr, dateStr]
     );
 
     return {
@@ -108,8 +111,7 @@ export function useDashboardStats() {
       newCriticalCVEs: result[0]?.newCriticalCVEs ?? 0,
       newWithExploit: result[0]?.newWithExploit ?? 0,
       newWithFix: result[0]?.newWithFix ?? 0,
-      newInKev: result[0]?.newInKev ?? 0,
-      newHighEpss: result[0]?.newHighEpss ?? 0
+      newInKev: result[0]?.newInKev ?? 0
     };
   }, [isReady, executeQuery]);
 
@@ -163,6 +165,49 @@ export function useDashboardStats() {
     },
     [isReady, executeQuery]
   );
+
+  // Distribuição de EPSS no catálogo inteiro. Sem recorte de data de propósito:
+  // CVE recém-publicada quase sempre começa com EPSS baixo, então um recorte de
+  // 30 dias faria a barra virar um bloco só da faixa mais baixa.
+  const getEpssDistribution = useCallback((): EpssDistributionStats => {
+    if (!isReady) {
+      return {
+        'very-low': 0,
+        low: 0,
+        moderate: 0,
+        high: 0,
+        critical: 0,
+        unscored: 0
+      };
+    }
+
+    const result = executeQuery<{
+      veryLow: number;
+      low: number;
+      moderate: number;
+      high: number;
+      critical: number;
+      unscored: number;
+    }>(`
+      SELECT
+        SUM(CASE WHEN epss >= 0.7 THEN 1 ELSE 0 END) as critical,
+        SUM(CASE WHEN epss >= 0.36 AND epss < 0.7 THEN 1 ELSE 0 END) as high,
+        SUM(CASE WHEN epss >= 0.1 AND epss < 0.36 THEN 1 ELSE 0 END) as moderate,
+        SUM(CASE WHEN epss >= 0.01 AND epss < 0.1 THEN 1 ELSE 0 END) as low,
+        SUM(CASE WHEN epss >= 0 AND epss < 0.01 THEN 1 ELSE 0 END) as veryLow,
+        SUM(CASE WHEN epss IS NULL THEN 1 ELSE 0 END) as unscored
+      FROM cves
+    `);
+
+    return {
+      'very-low': result[0]?.veryLow ?? 0,
+      low: result[0]?.low ?? 0,
+      moderate: result[0]?.moderate ?? 0,
+      high: result[0]?.high ?? 0,
+      critical: result[0]?.critical ?? 0,
+      unscored: result[0]?.unscored ?? 0
+    };
+  }, [isReady, executeQuery]);
 
   // Get top 5 critical CVEs with exploit
   const getCriticalCVEsWithPOC = useCallback((): CriticalCVEWithPOC[] => {
@@ -417,6 +462,7 @@ export function useDashboardStats() {
   return {
     getRecentStats,
     getSeverityDistribution,
+    getEpssDistribution,
     getCriticalCVEsWithPOC,
     getCVEsByPeriod,
     getCWETrend,

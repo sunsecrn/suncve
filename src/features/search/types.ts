@@ -194,6 +194,9 @@ export const EPSS_LEVEL_META: Record<
   }
 };
 
+// Contagem de CVEs por faixa, usada pelos cards de distribuição.
+export type EpssCounts = Record<EpssFilterLevel, number>;
+
 export const EPSS_LEVELS: EpssFilterLevel[] = [
   'critical',
   'high',

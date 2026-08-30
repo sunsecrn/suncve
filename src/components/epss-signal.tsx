@@ -5,15 +5,23 @@ import {
   EPSS_LEVEL_META,
   formatEpss,
   getEpssLevel,
+  type EpssFilterLevel,
   type EpssLevel
 } from '@/features/search/types';
 
 // Alturas literais e crescentes (Tailwind v4 não detecta classes montadas por
 // template string num build estático). Cinco barras, como sinal de celular.
-const BAR_HEIGHTS = ['h-1', 'h-1.5', 'h-2', 'h-2.5', 'h-3'] as const;
+const BAR_HEIGHTS = ['h-1.5', 'h-2', 'h-2.5', 'h-3', 'h-3.5'] as const;
 
 interface EpssSignalProps {
-  epss: number | null | undefined;
+  /** Probabilidade EPSS [0-1] da CVE. Use isto quando houver dado real. */
+  epss?: number | null;
+  /**
+   * Nível explícito, para legendas e filtros. Diferente de `epss`, não inventa
+   * uma porcentagem no resumo — o badge de um filtro representa a faixa
+   * inteira, não um valor.
+   */
+  level?: EpssFilterLevel;
   percentile?: number | null;
   /** Data do score (YYYY-MM-DD), exibida no resumo do title. */
   date?: string | null;
@@ -23,6 +31,8 @@ interface EpssSignalProps {
   locale?: string;
   /** Rótulo acessível já traduzido, ex.: 'EPSS'. */
   label?: string;
+  /** Nome da faixa já traduzido, usado no resumo quando `level` é passado. */
+  levelLabel?: string;
   className?: string;
 }
 
@@ -39,29 +49,36 @@ interface EpssSignalProps {
  */
 export function EpssSignal({
   epss,
+  level,
   percentile,
   date,
   showValue = false,
   locale = 'en',
   label = 'EPSS',
+  levelLabel,
   className
 }: EpssSignalProps) {
-  const level: EpssLevel = getEpssLevel(epss);
-  const meta = EPSS_LEVEL_META[level];
+  const resolved: EpssLevel = level ?? getEpssLevel(epss);
+  const meta = EPSS_LEVEL_META[resolved];
   const value = formatEpss(epss, locale);
 
-  const summary =
-    level === 'none'
-      ? `${label}: —`
-      : [
-          `${label} ${value}`,
-          percentile !== null && percentile !== undefined
-            ? `p${(percentile * 100).toFixed(1)}`
-            : null,
-          date || null
-        ]
-          .filter(Boolean)
-          .join(' · ');
+  let summary: string;
+  if (level) {
+    // Legenda: descreve a faixa, sem sugerir um valor que não foi medido.
+    summary = levelLabel ? `${label}: ${levelLabel}` : label;
+  } else if (resolved === 'none') {
+    summary = `${label}: —`;
+  } else {
+    summary = [
+      `${label} ${value}`,
+      percentile !== null && percentile !== undefined
+        ? `p${(percentile * 100).toFixed(1)}`
+        : null,
+      date || null
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  }
 
   return (
     <span
@@ -69,7 +86,7 @@ export function EpssSignal({
       title={summary}
     >
       <span
-        className='flex items-end gap-[2px]'
+        className='flex items-end gap-[3px]'
         role='img'
         aria-label={summary}
       >
@@ -77,14 +94,14 @@ export function EpssSignal({
           <span
             key={height}
             className={cn(
-              'w-1 rounded-[1px]',
+              'w-1.5 rounded-[1px]',
               height,
-              index < meta.bars ? meta.barClass : 'bg-muted-foreground/25'
+              index < meta.bars ? meta.barClass : 'bg-muted-foreground/40'
             )}
           />
         ))}
       </span>
-      {showValue && (
+      {showValue && !level && (
         <span className={cn('font-mono text-xs', meta.textClass)}>{value}</span>
       )}
     </span>

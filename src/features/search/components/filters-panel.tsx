@@ -47,7 +47,6 @@ import {
   type EpssFilterLevel,
   EPSS_LEVELS,
   EPSS_LEVEL_META,
-  EPSS_LEVEL_RANGE,
   defaultFilters
 } from '@/features/search/types';
 import { EpssSignal } from '@/components/epss-signal';
@@ -74,6 +73,7 @@ export function FiltersPanel({
   isSearching = false
 }: FiltersPanelProps) {
   const t = useTranslations('search.filters');
+  const tEpss = useTranslations('epss');
   const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [cweOpen, setCweOpen] = useState(false);
@@ -323,12 +323,11 @@ export function FiltersPanel({
 
           {/* EPSS — probabilidade de exploração em 30 dias */}
           <div className='space-y-3'>
-            <Label>{t('epss')}</Label>
+            <Label>{tEpss('label')}</Label>
             <div className='flex flex-wrap gap-2'>
               {EPSS_LEVELS.map((level) => {
                 const active = filters.epssLevel.includes(level);
-                // Valor representativo do bucket só para desenhar as barras.
-                const sample = EPSS_LEVEL_RANGE[level].min;
+                const levelLabel = tEpss(`levels.${level}`);
                 return (
                   <Badge
                     key={level}
@@ -339,8 +338,12 @@ export function FiltersPanel({
                     )}
                     onClick={() => handleEpssToggle(level)}
                   >
-                    <EpssSignal epss={sample} label={t('epss')} />
-                    {t(`epss_${level}`)}
+                    <EpssSignal
+                      level={level}
+                      label={tEpss('label')}
+                      levelLabel={levelLabel}
+                    />
+                    {levelLabel}
                   </Badge>
                 );
               })}

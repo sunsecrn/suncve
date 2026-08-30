@@ -37,10 +37,7 @@
     "patchesReleased": "Patches lançados",
     "newInKev": "CVEs no KEV",
     "newInKevFooter": "Exploração ativa confirmada",
-    "cisaCatalog": "Catálogo CISA KEV",
-    "newHighEpss": "EPSS alto",
-    "newHighEpssFooter": "Exploração provável",
-    "epssThreshold": "Probabilidade >= 10% em 30 dias"
+    "cisaCatalog": "Catálogo CISA KEV"
   },
   "charts": {
     "cvesByPeriod": "CVEs por Período",
@@ -184,10 +181,7 @@
       "patchCommits": "Commits de correção conhecidos",
       "inKev": "No KEV (CISA)",
       "kevListed": "Exploração ativa",
-      "kevCatalog": "No catálogo CISA KEV",
-      "highEpss": "EPSS alto",
-      "highEpssLabel": "Exploração provável",
-      "highEpssHelp": "Probabilidade de 10% ou mais em 30 dias"
+      "kevCatalog": "No catálogo CISA KEV"
     },
     "filters": {
       "title": "Filtros",
@@ -236,12 +230,7 @@
       "period_custom": "Data específica",
       "repository": "Repositório",
       "repositoryPlaceholder": "owner/repo-name",
-      "epss": "EPSS",
-      "epss_critical": "Muito alto",
-      "epss_high": "Alto",
-      "epss_moderate": "Moderado",
-      "epss_low": "Baixo",
-      "epss_very-low": "Muito baixo"
+      "epss": "EPSS"
     },
     "table": {
       "cveId": "CVE ID",
@@ -537,5 +526,20 @@
     "resLicense": "Licença MIT",
     "sources": "Fontes de dados",
     "srcAllSources": "Ver todas as fontes"
+  },
+  "epss": {
+    "label": "EPSS",
+    "distribution": "Distribuição EPSS",
+    "realChance": "Exploração provável",
+    "scoredOf": "de {total} com score",
+    "noScores": "Nenhuma com score ainda",
+    "levels": {
+      "critical": "Muito alto",
+      "high": "Alto",
+      "moderate": "Moderado",
+      "low": "Baixo",
+      "very-low": "Muito baixo",
+      "unscored": "Sem score"
+    }
   }
 }
