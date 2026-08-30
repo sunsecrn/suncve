@@ -160,37 +160,43 @@ export const EPSS_LEVEL_RANGE: Record<
 // não detecta classes montadas por template string.
 export const EPSS_LEVEL_META: Record<
   EpssLevel,
-  { bars: number; barClass: string; textClass: string }
+  { bars: number; barClass: string; textClass: string; badgeClass: string }
 > = {
   none: {
     bars: 0,
     barClass: 'bg-muted-foreground/30',
-    textClass: 'text-muted-foreground'
+    textClass: 'text-muted-foreground',
+    badgeClass: ''
   },
   'very-low': {
     bars: 1,
     barClass: 'bg-slate-400',
-    textClass: 'text-slate-600 dark:text-slate-400'
+    textClass: 'text-slate-600 dark:text-slate-400',
+    badgeClass: 'bg-slate-400 hover:bg-slate-500'
   },
   low: {
     bars: 2,
     barClass: 'bg-sky-500',
-    textClass: 'text-sky-700 dark:text-sky-400'
+    textClass: 'text-sky-700 dark:text-sky-400',
+    badgeClass: 'bg-sky-500 hover:bg-sky-600'
   },
   moderate: {
     bars: 3,
     barClass: 'bg-yellow-500',
-    textClass: 'text-yellow-700 dark:text-yellow-500'
+    textClass: 'text-yellow-700 dark:text-yellow-500',
+    badgeClass: 'bg-yellow-500 hover:bg-yellow-600 text-black'
   },
   high: {
     bars: 4,
     barClass: 'bg-orange-500',
-    textClass: 'text-orange-700 dark:text-orange-400'
+    textClass: 'text-orange-700 dark:text-orange-400',
+    badgeClass: 'bg-orange-500 hover:bg-orange-600'
   },
   critical: {
     bars: 5,
     barClass: 'bg-rose-600',
-    textClass: 'text-rose-700 dark:text-rose-400'
+    textClass: 'text-rose-700 dark:text-rose-400',
+    badgeClass: 'bg-rose-600 hover:bg-rose-700'
   }
 };
 
@@ -205,13 +211,17 @@ export const EPSS_LEVELS: EpssFilterLevel[] = [
   'very-low'
 ];
 
-// 0.97812 -> "97,8%" (pt-BR) / "97.8%" (en). Abaixo de 0,1% evita mostrar "0.0%".
+// 0.97812 -> "97,8%" (pt-BR) / "97.8%" (en). Os extremos ganham tratamento
+// próprio: abaixo de 0,1% evitaria "0.0%", e o topo (0.99999, o maior score que
+// o EPSS publica) arredondaria para "100%" — afirmar certeza numa probabilidade
+// que por definição nunca chega a 1.
 export function formatEpss(
   epss: number | null | undefined,
   locale = 'en'
 ): string {
   if (epss === null || epss === undefined) return '—';
   if (epss > 0 && epss < 0.001) return '< 0.1%';
+  if (epss < 1 && epss > 0.999) return '> 99.9%';
   return new Intl.NumberFormat(locale, {
     style: 'percent',
     maximumFractionDigits: 1

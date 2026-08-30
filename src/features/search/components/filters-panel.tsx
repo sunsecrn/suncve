@@ -49,7 +49,6 @@ import {
   EPSS_LEVEL_META,
   defaultFilters
 } from '@/features/search/types';
-import { EpssSignal } from '@/components/epss-signal';
 import { CWE_CATEGORIES, getCWEDisplay } from '@/features/search/cwe-data';
 import { Input } from '@/components/ui/input';
 import { CheckIcon } from '@radix-ui/react-icons';
@@ -333,16 +332,11 @@ export function FiltersPanel({
                     key={level}
                     variant={active ? 'default' : 'outline'}
                     className={cn(
-                      'cursor-pointer gap-1.5 transition-colors',
-                      active && EPSS_LEVEL_META[level].textClass
+                      'cursor-pointer transition-colors',
+                      active && EPSS_LEVEL_META[level].badgeClass
                     )}
                     onClick={() => handleEpssToggle(level)}
                   >
-                    <EpssSignal
-                      level={level}
-                      label={tEpss('label')}
-                      levelLabel={levelLabel}
-                    />
                     {levelLabel}
                   </Badge>
                 );
