@@ -274,14 +274,7 @@
       "more": "mais",
       "copyLink": "Copiar Link",
       "copied": "Copiado!",
-      "epss": "EPSS",
-      "epssTitle": "EPSS (probabilidade de exploração)",
-      "epssHelp": "O EPSS estima a probabilidade de esta vulnerabilidade ser explorada nos próximos 30 dias. Diferente do CVSS, que mede a gravidade caso a exploração aconteça, o EPSS estima o quanto ela é provável — é o critério mais útil para priorizar correções.",
-      "epssProbability": "Probabilidade (30 dias)",
-      "epssPercentile": "Percentil",
-      "epssDate": "Data do score",
-      "epssSource": "Scores de empiricalsec/epss_scores (FIRST)",
-      "epssNotPublished": "Esta CVE ainda não tem score EPSS publicado."
+      "epss": "EPSS"
     }
   },
   "repositories": {

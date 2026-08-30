@@ -274,14 +274,7 @@
       "more": "more",
       "copyLink": "Copy Link",
       "copied": "Copied!",
-      "epss": "EPSS",
-      "epssTitle": "EPSS (exploitation probability)",
-      "epssHelp": "EPSS estimates the probability that this vulnerability will be exploited in the next 30 days. Unlike CVSS, which measures how severe exploitation would be, EPSS estimates how likely it is — making it the most useful signal for prioritizing fixes.",
-      "epssProbability": "Probability (30 days)",
-      "epssPercentile": "Percentile",
-      "epssDate": "Score date",
-      "epssSource": "Scores from empiricalsec/epss_scores (FIRST)",
-      "epssNotPublished": "This CVE does not have a published EPSS score yet."
+      "epss": "EPSS"
     }
   },
   "repositories": {
