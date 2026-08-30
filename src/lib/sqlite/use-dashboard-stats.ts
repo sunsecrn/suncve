@@ -11,6 +11,7 @@ export interface DashboardStats {
   newWithExploit: number;
   newWithFix: number;
   newInKev: number;
+  newHighEpss: number;
 }
 
 export interface SeverityDistribution {
@@ -33,6 +34,8 @@ export interface CriticalCVEWithPOC {
   exists_nuclei: number;
   in_kev: number;
   missing_nuclei_template: number;
+  epss: number | null;
+  epss_percentile: number | null;
 }
 
 export interface CVEsByPeriod {
@@ -68,7 +71,8 @@ export function useDashboardStats() {
         newCriticalCVEs: 0,
         newWithExploit: 0,
         newWithFix: 0,
-        newInKev: 0
+        newInKev: 0,
+        newHighEpss: 0
       };
     }
 
@@ -82,6 +86,7 @@ export function useDashboardStats() {
       newWithFix: number;
       newCriticalCVEs: number;
       newInKev: number;
+      newHighEpss: number;
     }>(
       `
       SELECT 
@@ -92,9 +97,10 @@ export function useDashboardStats() {
          WHERE c.date_published >= ? 
          AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)
         ) as newCriticalCVEs,
-        (SELECT COUNT(*) FROM cves WHERE date_published >= ? AND in_kev = 1) as newInKev
+        (SELECT COUNT(*) FROM cves WHERE date_published >= ? AND in_kev = 1) as newInKev,
+        (SELECT COUNT(*) FROM cves WHERE date_published >= ? AND epss >= 0.1) as newHighEpss
     `,
-      [dateStr, dateStr, dateStr, dateStr, dateStr]
+      [dateStr, dateStr, dateStr, dateStr, dateStr, dateStr]
     );
 
     return {
@@ -102,7 +108,8 @@ export function useDashboardStats() {
       newCriticalCVEs: result[0]?.newCriticalCVEs ?? 0,
       newWithExploit: result[0]?.newWithExploit ?? 0,
       newWithFix: result[0]?.newWithFix ?? 0,
-      newInKev: result[0]?.newInKev ?? 0
+      newInKev: result[0]?.newInKev ?? 0,
+      newHighEpss: result[0]?.newHighEpss ?? 0
     };
   }, [isReady, executeQuery]);
 
@@ -174,6 +181,8 @@ export function useDashboardStats() {
       exists_nuclei: number;
       in_kev: number;
       missing_nuclei_template: number;
+      epss: number | null;
+      epss_percentile: number | null;
     }>(`
       SELECT
         c.cve_id,
@@ -185,7 +194,9 @@ export function useDashboardStats() {
         c.exists_commit,
         c.exists_nuclei,
         c.in_kev,
-        c.missing_nuclei_template
+        c.missing_nuclei_template,
+        c.epss,
+        c.epss_percentile
       FROM cves c
       WHERE c.exists_exploit = 1
         AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)

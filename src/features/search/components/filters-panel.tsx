@@ -44,8 +44,13 @@ import {
   type SearchFilters,
   type Severity,
   type DatePeriod,
+  type EpssFilterLevel,
+  EPSS_LEVELS,
+  EPSS_LEVEL_META,
+  EPSS_LEVEL_RANGE,
   defaultFilters
 } from '@/features/search/types';
+import { EpssSignal } from '@/components/epss-signal';
 import { CWE_CATEGORIES, getCWEDisplay } from '@/features/search/cwe-data';
 import { Input } from '@/components/ui/input';
 import { CheckIcon } from '@radix-ui/react-icons';
@@ -98,6 +103,16 @@ export function FiltersPanel({
         ? filters.severity.filter((s) => s !== severity)
         : [...filters.severity, severity];
       onFiltersChange({ ...filters, severity: newSeverities });
+    },
+    [filters, onFiltersChange]
+  );
+
+  const handleEpssToggle = useCallback(
+    (level: EpssFilterLevel) => {
+      const newLevels = filters.epssLevel.includes(level)
+        ? filters.epssLevel.filter((l) => l !== level)
+        : [...filters.epssLevel, level];
+      onFiltersChange({ ...filters, epssLevel: newLevels });
     },
     [filters, onFiltersChange]
   );
@@ -303,6 +318,32 @@ export function FiltersPanel({
                   </Badge>
                 )
               )}
+            </div>
+          </div>
+
+          {/* EPSS — probabilidade de exploração em 30 dias */}
+          <div className='space-y-3'>
+            <Label>{t('epss')}</Label>
+            <div className='flex flex-wrap gap-2'>
+              {EPSS_LEVELS.map((level) => {
+                const active = filters.epssLevel.includes(level);
+                // Valor representativo do bucket só para desenhar as barras.
+                const sample = EPSS_LEVEL_RANGE[level].min;
+                return (
+                  <Badge
+                    key={level}
+                    variant={active ? 'default' : 'outline'}
+                    className={cn(
+                      'cursor-pointer gap-1.5 transition-colors',
+                      active && EPSS_LEVEL_META[level].textClass
+                    )}
+                    onClick={() => handleEpssToggle(level)}
+                  >
+                    <EpssSignal epss={sample} label={t('epss')} />
+                    {t(`epss_${level}`)}
+                  </Badge>
+                );
+              })}
             </div>
           </div>
 
@@ -721,6 +762,7 @@ function countActiveFilters(filters: SearchFilters): number {
   if (filters.query) count++;
   if (filters.cvssMin > 0 || filters.cvssMax < 10) count++;
   if (filters.severity.length > 0) count++;
+  if (filters.epssLevel.length > 0) count++;
   if (filters.cwes.length > 0) count++;
   if (filters.cweCategory) count++;
   if (filters.hasExploit !== null) count++;

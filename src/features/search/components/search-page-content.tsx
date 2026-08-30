@@ -63,12 +63,14 @@ function SearchPageContentInner() {
     withExploit: number;
     withCommit: number;
     inKev: number;
+    highEpss: number;
   }>({
     totalCVEs: 0,
     totalRepos: 0,
     withExploit: 0,
     withCommit: 0,
-    inKev: 0
+    inKev: 0,
+    highEpss: 0
   });
 
   // Debounce filters to avoid excessive queries while typing

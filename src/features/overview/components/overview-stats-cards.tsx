@@ -21,6 +21,7 @@ import {
   useDashboardStats,
   type DashboardStats
 } from '@/lib/sqlite/use-dashboard-stats';
+import { EpssSignal } from '@/components/epss-signal';
 
 export function OverviewStatsCards() {
   const t = useTranslations('dashboard');
@@ -30,7 +31,8 @@ export function OverviewStatsCards() {
     newCriticalCVEs: 0,
     newWithExploit: 0,
     newWithFix: 0,
-    newInKev: 0
+    newInKev: 0,
+    newHighEpss: 0
   });
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export function OverviewStatsCards() {
   return (
     <div
       data-tour='stats-cards'
-      className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-5'
+      className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-6'
     >
       <Card className='@container/card'>
         <CardHeader>
@@ -148,6 +150,26 @@ export function OverviewStatsCards() {
             <IconShieldChevron className='size-4 text-amber-500' />
           </div>
           <div className='text-muted-foreground'>{t('cisaCatalog')}</div>
+        </CardFooter>
+      </Card>
+      <Card className='@container/card'>
+        <CardHeader>
+          <CardDescription>{t('newHighEpss')}</CardDescription>
+          <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
+            {stats.newHighEpss.toLocaleString()}
+          </CardTitle>
+          <CardAction>
+            <span className='flex items-center gap-1 text-xs font-medium text-rose-600'>
+              <EpssSignal epss={0.5} label='EPSS' />
+              EPSS
+            </span>
+          </CardAction>
+        </CardHeader>
+        <CardFooter className='flex-col items-start gap-1.5 text-sm'>
+          <div className='line-clamp-1 flex items-center gap-2 font-medium'>
+            {t('newHighEpssFooter')} <EpssSignal epss={0.9} label='EPSS' />
+          </div>
+          <div className='text-muted-foreground'>{t('epssThreshold')}</div>
         </CardFooter>
       </Card>
     </div>

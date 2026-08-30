@@ -39,6 +39,7 @@ import type {
   SortField,
   Severity
 } from '@/features/search/types';
+import { EpssSignal } from '@/components/epss-signal';
 import { cn } from '@/lib/utils';
 import { formatDateLocalized } from '@/lib/format';
 
@@ -63,19 +64,20 @@ export function ResultsTable({
   const locale = useLocale();
 
   const handleSort = (field: SortField) => {
-    // Special handling for score: 3 states (desc -> asc -> reset)
-    if (field === 'score') {
-      if (sort.field === 'score') {
+    // Special handling for score/epss: 3 states (desc -> asc -> reset).
+    // Nos dois casos o interessante é o topo, então começam em desc.
+    if (field === 'score' || field === 'epss') {
+      if (sort.field === field) {
         if (sort.order === 'desc') {
           // Current: desc, next: asc
-          onSortChange({ field: 'score', order: 'asc' });
+          onSortChange({ field, order: 'asc' });
         } else {
           // Current: asc, next: reset to default
           onSortChange({ field: 'date_published', order: 'desc' });
         }
       } else {
-        // Not sorting by score, start with desc
-        onSortChange({ field: 'score', order: 'desc' });
+        // Not sorting by this field yet, start with desc
+        onSortChange({ field, order: 'desc' });
       }
     } else {
       // Other fields: 2 states (toggle between asc/desc)
@@ -166,6 +168,16 @@ export function ResultsTable({
                       <SortIcon field='score' />
                     </Button>
                   </TableHead>
+                  <TableHead className='w-[95px]'>
+                    <Button
+                      variant='ghost'
+                      className='h-8 p-0 font-semibold hover:bg-transparent'
+                      onClick={() => handleSort('epss')}
+                    >
+                      {t('epss')}
+                      <SortIcon field='epss' />
+                    </Button>
+                  </TableHead>
                   <TableHead className='w-[100px]'>{t('flags')}</TableHead>
                   <TableHead className='w-[120px]'>{t('affected')}</TableHead>
                   <TableHead className='w-[150px]'>{t('repository')}</TableHead>
@@ -193,7 +205,12 @@ export function ResultsTable({
                       {cve.cve_id}
                     </TableCell>
                     <TableCell className='overflow-hidden'>
-                      <div className='truncate text-sm' title={cve.title || cve.description?.substring(0, 200) || ''}>
+                      <div
+                        className='truncate text-sm'
+                        title={
+                          cve.title || cve.description?.substring(0, 200) || ''
+                        }
+                      >
                         {cve.title || cve.description?.substring(0, 100) || '—'}
                       </div>
                     </TableCell>
@@ -206,6 +223,15 @@ export function ResultsTable({
                       ) : (
                         <span className='text-muted-foreground'>—</span>
                       )}
+                    </TableCell>
+                    <TableCell>
+                      <EpssSignal
+                        epss={cve.epss}
+                        percentile={cve.epss_percentile}
+                        locale={locale}
+                        label={t('epss')}
+                        showValue
+                      />
                     </TableCell>
                     <TableCell>
                       <div className='flex flex-nowrap gap-1'>
@@ -387,6 +413,7 @@ function TableSkeleton() {
                   <TableHead className='w-[140px]'>CVE ID</TableHead>
                   <TableHead className='w-[80px]'>Title</TableHead>
                   <TableHead className='w-[80px]'>Score</TableHead>
+                  <TableHead className='w-[95px]'>EPSS</TableHead>
                   <TableHead className='w-[100px]'>Flags</TableHead>
                   <TableHead className='w-[120px]'>Affected</TableHead>
                   <TableHead className='w-[150px]'>Repository</TableHead>
@@ -404,6 +431,9 @@ function TableSkeleton() {
                     </TableCell>
                     <TableCell>
                       <Skeleton className='h-7 w-14 rounded-full' />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className='h-5 w-16 rounded' />
                     </TableCell>
                     <TableCell>
                       <Skeleton className='h-7 w-16 rounded' />

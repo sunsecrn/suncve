@@ -37,7 +37,10 @@
     "patchesReleased": "Patches released",
     "newInKev": "CVEs in KEV",
     "newInKevFooter": "Active exploitation confirmed",
-    "cisaCatalog": "CISA KEV Catalog"
+    "cisaCatalog": "CISA KEV Catalog",
+    "newHighEpss": "High EPSS",
+    "newHighEpssFooter": "Exploitation likely",
+    "epssThreshold": "Probability >= 10% within 30 days"
   },
   "charts": {
     "cvesByPeriod": "CVEs by Period",
@@ -67,7 +70,8 @@
     "tagCommit": "Fix commit available",
     "tagNuclei": "Nuclei template",
     "tagKev": "In CISA KEV",
-    "tagMissing": "Pending template"
+    "tagMissing": "Pending template",
+    "tagEpss": "EPSS"
   },
   "themes": {
     "default": "Default",
@@ -180,7 +184,10 @@
       "patchCommits": "Known fix commits",
       "inKev": "In KEV (CISA)",
       "kevListed": "Actively exploited",
-      "kevCatalog": "In the CISA KEV catalog"
+      "kevCatalog": "In the CISA KEV catalog",
+      "highEpss": "High EPSS",
+      "highEpssLabel": "Exploitation likely",
+      "highEpssHelp": "Probability of 10% or more within 30 days"
     },
     "filters": {
       "title": "Filters",
@@ -228,7 +235,13 @@
       "period_all": "All",
       "period_custom": "Specific date",
       "repository": "Repository",
-      "repositoryPlaceholder": "owner/repo-name"
+      "repositoryPlaceholder": "owner/repo-name",
+      "epss": "EPSS",
+      "epss_critical": "Very high",
+      "epss_high": "High",
+      "epss_moderate": "Moderate",
+      "epss_low": "Low",
+      "epss_very-low": "Very low"
     },
     "table": {
       "cveId": "CVE ID",
@@ -240,7 +253,8 @@
       "published": "Published",
       "noResults": "No results found",
       "tryDifferentFilters": "Try adjusting your filters or search term",
-      "showing": "Showing {from} to {to} of {total} results"
+      "showing": "Showing {from} to {to} of {total} results",
+      "epss": "EPSS"
     },
     "detail": {
       "hasExploit": "Exploit",
@@ -270,7 +284,14 @@
       "openExternalLink": "Open external link",
       "more": "more",
       "copyLink": "Copy Link",
-      "copied": "Copied!"
+      "copied": "Copied!",
+      "epss": "EPSS",
+      "epssTitle": "EPSS (exploitation probability)",
+      "epssHelp": "EPSS estimates the probability that this vulnerability will be exploited in the next 30 days. Unlike CVSS, which measures how severe exploitation would be, EPSS estimates how likely it is — making it the most useful signal for prioritizing fixes.",
+      "epssProbability": "Probability (30 days)",
+      "epssPercentile": "Percentile",
+      "epssDate": "Score date",
+      "epssSource": "Scores from empiricalsec/epss_scores (FIRST)"
     }
   },
   "repositories": {
@@ -426,7 +447,9 @@
       "npmText": "Download counts from nice-registry/download-counts measure each package's popularity, and the npm registry resolves every package to its canonical repository, enriching GitHub repos with package URL and downloads.",
       "packagistTitle": "Packagist packages",
       "packagistText": "OSV Packagist export plus the Packagist API resolve each affected Composer package to its repository and total downloads, matched against the repositories from our references.",
-      "visit": "Visit repository"
+      "visit": "Visit repository",
+      "epssTitle": "EPSS Scores",
+      "epssText": "empiricalsec/epss_scores publishes current and historical EPSS scores (FIRST) — the probability that each CVE will be exploited in the next 30 days."
     },
     "contributors": {
       "badge": "Community",

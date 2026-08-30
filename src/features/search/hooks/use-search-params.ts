@@ -16,12 +16,20 @@ import type {
   SortField,
   SortOrder,
   Severity,
+  EpssFilterLevel,
   DatePeriod
 } from '../types';
 import { defaultFilters } from '../types';
 
 // Define severity options for parser
 const severityOptions = ['critical', 'high', 'medium', 'low', 'none'] as const;
+const epssLevelOptions = [
+  'very-low',
+  'low',
+  'moderate',
+  'high',
+  'critical'
+] as const;
 const datePeriodOptions = [
   'today',
   '7d',
@@ -37,6 +45,7 @@ const sortFieldOptions = [
   'date_published',
   'date_updated',
   'score',
+  'epss',
   'stars',
   'created_repository',
   'updated_repository'
@@ -80,6 +89,9 @@ const searchParamsConfig = {
   severity: parseAsArrayOf(parseAsStringLiteral(severityOptions)).withDefault(
     []
   ),
+
+  // EPSS level filter (comma-separated)
+  epss: parseAsArrayOf(parseAsStringLiteral(epssLevelOptions)).withDefault([]),
 
   // CWE filter (comma-separated)
   cwes: parseAsArrayOf(parseAsString).withDefault([]),
@@ -141,6 +153,7 @@ export function useSearchParams() {
       cvssMin: params.cvssMin,
       cvssMax: params.cvssMax,
       severity: params.severity as Severity[],
+      epssLevel: params.epss as EpssFilterLevel[],
       cwes: params.cwes.filter(Boolean),
       hasExploit: params.exploit,
       hasRepository: params.repo,
@@ -184,6 +197,7 @@ export function useSearchParams() {
         cvssMin: newFilters.cvssMin === 0 ? null : newFilters.cvssMin,
         cvssMax: newFilters.cvssMax === 10 ? null : newFilters.cvssMax,
         severity: newFilters.severity.length > 0 ? newFilters.severity : null,
+        epss: newFilters.epssLevel.length > 0 ? newFilters.epssLevel : null,
         cwes: newFilters.cwes.length > 0 ? newFilters.cwes : null,
         exploit: newFilters.hasExploit,
         repo: newFilters.hasRepository,
@@ -238,6 +252,7 @@ export function useSearchParams() {
       cvssMin: null,
       cvssMax: null,
       severity: null,
+      epss: null,
       cwes: null,
       exploit: null,
       repo: null,
@@ -270,6 +285,7 @@ export function useSearchParams() {
       filters.cvssMin !== 0 ||
       filters.cvssMax !== 10 ||
       filters.severity.length > 0 ||
+      filters.epssLevel.length > 0 ||
       filters.cwes.length > 0 ||
       filters.hasExploit !== null ||
       filters.hasRepository !== null ||

@@ -37,7 +37,10 @@
     "patchesReleased": "Patches lançados",
     "newInKev": "CVEs no KEV",
     "newInKevFooter": "Exploração ativa confirmada",
-    "cisaCatalog": "Catálogo CISA KEV"
+    "cisaCatalog": "Catálogo CISA KEV",
+    "newHighEpss": "EPSS alto",
+    "newHighEpssFooter": "Exploração provável",
+    "epssThreshold": "Probabilidade >= 10% em 30 dias"
   },
   "charts": {
     "cvesByPeriod": "CVEs por Período",
@@ -67,7 +70,8 @@
     "tagCommit": "Commit de correção disponível",
     "tagNuclei": "Template Nuclei",
     "tagKev": "No CISA KEV",
-    "tagMissing": "Template pendente"
+    "tagMissing": "Template pendente",
+    "tagEpss": "EPSS"
   },
   "themes": {
     "default": "Padrão",
@@ -144,10 +148,6 @@
       "description": "Lista de CVEs encontradas. Clique em uma linha para ver detalhes completos. Use os cabeçalhos para ordenar."
     },
     "cveDetails": {
-      "title": "Detalhes da CVE",
-      "description": "Veja informações completas: scores CVSS, CWEs, produtos afetados, repositórios relacionados, exploits e commits de correção."
-    },
-    "cveDetails": {
       "title": "Detalhes do CVE",
       "description": "Veja informações completas: scores CVSS, CWEs, produtos afetados, repositórios, exploits e commits de correção."
     },
@@ -184,7 +184,10 @@
       "patchCommits": "Commits de correção conhecidos",
       "inKev": "No KEV (CISA)",
       "kevListed": "Exploração ativa",
-      "kevCatalog": "No catálogo CISA KEV"
+      "kevCatalog": "No catálogo CISA KEV",
+      "highEpss": "EPSS alto",
+      "highEpssLabel": "Exploração provável",
+      "highEpssHelp": "Probabilidade de 10% ou mais em 30 dias"
     },
     "filters": {
       "title": "Filtros",
@@ -232,7 +235,13 @@
       "period_all": "Todos",
       "period_custom": "Data específica",
       "repository": "Repositório",
-      "repositoryPlaceholder": "owner/repo-name"
+      "repositoryPlaceholder": "owner/repo-name",
+      "epss": "EPSS",
+      "epss_critical": "Muito alto",
+      "epss_high": "Alto",
+      "epss_moderate": "Moderado",
+      "epss_low": "Baixo",
+      "epss_very-low": "Muito baixo"
     },
     "table": {
       "cveId": "CVE ID",
@@ -244,7 +253,8 @@
       "published": "Publicado",
       "noResults": "Nenhum resultado encontrado",
       "tryDifferentFilters": "Tente ajustar os filtros ou termo de busca",
-      "showing": "Mostrando {from} até {to} de {total} resultados"
+      "showing": "Mostrando {from} até {to} de {total} resultados",
+      "epss": "EPSS"
     },
     "detail": {
       "hasExploit": "Exploit",
@@ -274,7 +284,14 @@
       "openExternalLink": "Abrir link externo",
       "more": "mais",
       "copyLink": "Copiar Link",
-      "copied": "Copiado!"
+      "copied": "Copiado!",
+      "epss": "EPSS",
+      "epssTitle": "EPSS (probabilidade de exploração)",
+      "epssHelp": "O EPSS estima a probabilidade de esta vulnerabilidade ser explorada nos próximos 30 dias. Diferente do CVSS, que mede a gravidade caso a exploração aconteça, o EPSS estima o quanto ela é provável — é o critério mais útil para priorizar correções.",
+      "epssProbability": "Probabilidade (30 dias)",
+      "epssPercentile": "Percentil",
+      "epssDate": "Data do score",
+      "epssSource": "Scores de empiricalsec/epss_scores (FIRST)"
     }
   },
   "repositories": {
@@ -430,7 +447,9 @@
       "npmText": "As contagens de download de nice-registry/download-counts medem a popularidade de cada pacote, e o registro do npm resolve cada pacote ao seu repositório canônico, enriquecendo repos do GitHub com URL do pacote e downloads.",
       "packagistTitle": "Pacotes Packagist",
       "packagistText": "O export OSV de Packagist e a API do Packagist resolvem cada pacote Composer afetado para o seu repositório e total de downloads, cruzados com os repositórios das nossas referências.",
-      "visit": "Visitar repositório"
+      "visit": "Visitar repositório",
+      "epssTitle": "EPSS Scores",
+      "epssText": "empiricalsec/epss_scores publica os scores atuais e históricos do EPSS (FIRST), a probabilidade de cada CVE ser explorada nos próximos 30 dias."
     },
     "contributors": {
       "badge": "Comunidade",
