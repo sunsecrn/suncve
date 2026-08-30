@@ -16,9 +16,16 @@ function ScrollArea({
       className={cn('relative', className)}
       {...props}
     >
+      {/*
+        [&>div]:!block neutraliza o wrapper que o Radix injeta no Viewport com
+        `display: table` (react-scroll-area/dist/index.mjs). `table` faz
+        shrink-to-fit: a caixa cresce junto com o texto, então truncate e
+        line-clamp de qualquer descendente nunca disparam e o conteudo vaza na
+        horizontal. Nao remova sem antes conferir o titulo do repo-detail-drawer.
+      */}
       <ScrollAreaPrimitive.Viewport
         data-slot='scroll-area-viewport'
-        className='focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1'
+        className='focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1 [&>div]:!block [&>div]:min-w-0'
       >
         {children}
       </ScrollAreaPrimitive.Viewport>

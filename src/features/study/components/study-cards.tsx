@@ -130,7 +130,9 @@ export function CveMiniCard({
 function repoExternalUrl(snapshot: RepoSnapshot): string {
   if (snapshot.ecosystem === 'wordpress') return `https://${snapshot.fullpath}`;
   if (snapshot.ecosystem === 'npm') {
-    return `https://www.npmjs.com/package/${snapshot.name ?? snapshot.fullpath}`;
+    // encodeURI (e nao encodeURIComponent) para preservar a barra de pacotes
+    // com escopo (@org/pkg); o nome vem de dado externo, entao nunca vai cru.
+    return `https://www.npmjs.com/package/${encodeURI(snapshot.name ?? snapshot.fullpath)}`;
   }
   if (snapshot.ecosystem === 'packagist') {
     return `https://packagist.org/packages/${snapshot.fullpath}`;

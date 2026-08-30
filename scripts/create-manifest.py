@@ -11,6 +11,7 @@ import socket
 import shutil
 import hashlib
 import ipaddress
+import html
 from functools import lru_cache
 from pathlib import Path
 from datetime import datetime, timezone
@@ -3707,6 +3708,20 @@ class WordPressMetadata:
         match = re.match(r"\s*(\d{4}-\d{2}-\d{2})", raw)
         return match.group(1) if match else None
 
+    @staticmethod
+    def _decodeName(raw: object) -> str | None:
+        """
+        O diretório WordPress serve os nomes HTML-escapados (ex.: "Yoast SEO
+        &#8211; Advanced SEO", "Backup, Speed, &amp; Growth"). Grava o texto já
+        decodificado: além de exibir certo, é o que faz a busca por LIKE casar
+        com o nome como ele aparece na tela.
+        Retorna None quando não há nome (mantém o valor existente via COALESCE).
+        """
+        if not isinstance(raw, str):
+            return None
+        decoded = html.unescape(raw).strip()
+        return decoded or None
+
     def run(self, db: "databaseSQLite") -> None:
         # Garante as colunas do ecossistema (bancos restaurados de snapshots antigos).
         db.createTable()
@@ -3774,7 +3789,7 @@ class WordPressMetadata:
                 (
                     plugin.get("active_installs"),
                     plugin.get("downloaded"),
-                    plugin.get("name"),
+                    self._decodeName(plugin.get("name")),
                     self._parseLastUpdated(plugin.get("last_updated")),
                     WordPressExtractor.fullpathFromSlug(slug),
                 ),

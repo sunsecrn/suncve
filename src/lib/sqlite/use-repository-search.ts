@@ -10,6 +10,7 @@ import type {
   CVESearchResult
 } from '@/features/search/types';
 import { getSeverityFromScore } from '@/features/search/types';
+import { decodeHtmlEntities } from '@/lib/format';
 
 const DEFAULT_PAGE_SIZE = 50;
 
@@ -240,7 +241,9 @@ export function useRepositorySearch() {
 
         const results: RepositorySearchResult[] = rawResults.map((row) => ({
           fullpath: row.fullpath,
-          name: row.name,
+          // Decodifica aqui, no unico ponto de leitura, para que tabela, drawer,
+          // snapshot do IndexedDB e links herdem o nome ja limpo.
+          name: decodeHtmlEntities(row.name),
           stars: row.stars,
           size: row.size,
           languageMain: row.languageMain,
@@ -315,6 +318,7 @@ export function useRepositorySearch() {
 
       return {
         ...repo,
+        name: decodeHtmlEntities(repo.name as string | null),
         cves: [] as CVESearchResult[],
         cve_count: countResult[0]?.count ?? 0
       };
