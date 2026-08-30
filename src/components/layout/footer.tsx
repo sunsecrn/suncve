@@ -70,6 +70,11 @@ export default function Footer() {
       href: 'https://github.com/nomi-sec/PoC-in-GitHub',
       external: true
     },
+    {
+      label: 'EPSS Scores',
+      href: 'https://github.com/empiricalsec/epss_scores',
+      external: true
+    },
     { label: t('srcAllSources'), href: '/dashboard/readme' }
   ];
 

@@ -233,6 +233,13 @@ export default function ReadmePageContent() {
       bg: 'bg-amber-500/10'
     },
     {
+      title: t('sources.epssTitle'),
+      text: t('sources.epssText'),
+      url: 'https://github.com/empiricalsec/epss_scores',
+      color: 'text-rose-500',
+      bg: 'bg-rose-500/10'
+    },
+    {
       title: t('sources.wordpressTitle'),
       text: t('sources.wordpressText'),
       url: 'https://github.com/rix4uni/wordpress-plugins',
