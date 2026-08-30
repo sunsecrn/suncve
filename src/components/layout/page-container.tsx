@@ -49,9 +49,11 @@ export default function PageContainer({
 
   const content = isloading ? <PageSkeleton /> : children;
 
-  // Scroll is handled by SidebarInset. Use flex-1 (grow to fill + grow with
-  // content) WITHOUT min-h-0 so tall content expands the box instead of
-  // overflowing it — otherwise a sibling footer would overlap the overflow.
+  // Scroll is handled by SidebarInset e o piso de uma tela cheia vem do wrapper
+  // em src/app/dashboard/layout.tsx. Aqui use flex-1 (grow to fill + grow with
+  // content) e NUNCA um min-h/min-h-0 junto: min-height explícito anula o
+  // min-height:auto do flex item, o conteúdo alto vaza da caixa e o rodapé
+  // (irmão no flex) cai no meio dele.
   return (
     <div className='flex flex-1 flex-col p-4 pb-8 md:px-6'>
       <div className='mb-4 flex items-start justify-between'>
