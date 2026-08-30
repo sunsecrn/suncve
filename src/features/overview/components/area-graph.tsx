@@ -26,6 +26,7 @@ import {
   type CWETrendData,
   type ChartPeriod
 } from '@/lib/sqlite/use-dashboard-stats';
+import { getCWEName } from '@/features/search/cwe-data';
 
 const MONTH_NAMES: Record<string, Record<string, string>> = {
   'pt-BR': {
@@ -77,6 +78,7 @@ const CWE_NAMES: Record<string, string> = {
   'CWE-190': 'Int OF',
   'CWE-200': 'Info Exp',
   'CWE-269': 'Priv Mgmt',
+  'CWE-284': 'Access Control',
   'CWE-287': 'Auth Byp',
   'CWE-352': 'CSRF',
   'CWE-400': 'Resource',
@@ -89,6 +91,15 @@ const CWE_NAMES: Record<string, string> = {
   'CWE-863': 'Inc Auth',
   'CWE-918': 'SSRF'
 };
+
+/**
+ * Rótulo do gráfico: prefere o apelido curto (cabe no tooltip e na legenda);
+ * se a CWE não tiver um, usa o nome do catálogo em cwe-data.ts em vez de
+ * mostrar o número cru (era o caso da CWE-284, que aparecia só como "284").
+ */
+function cweLabel(cwe: string): string {
+  return CWE_NAMES[cwe] ?? getCWEName(cwe);
+}
 
 // Colors for CWEs
 const CWE_COLORS = [
@@ -128,7 +139,7 @@ export function AreaGraph() {
   // Build dynamic chart config based on CWEs
   const chartConfig: ChartConfig = cwes.reduce((config, cwe, index) => {
     config[cwe] = {
-      label: CWE_NAMES[cwe] || cwe.replace('CWE-', ''),
+      label: cweLabel(cwe),
       color: CWE_COLORS[index % CWE_COLORS.length]
     };
     return config;
@@ -155,7 +166,7 @@ export function AreaGraph() {
   const totals = cwes
     .map((cwe) => ({
       cwe,
-      name: CWE_NAMES[cwe] || cwe.replace('CWE-', ''),
+      name: cweLabel(cwe),
       total: chartData.reduce(
         (acc, curr) =>
           acc + (Number((curr as Record<string, unknown>)[cwe]) || 0),
