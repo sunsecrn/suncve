@@ -68,7 +68,11 @@
     "tagNuclei": "Nuclei template",
     "tagKev": "In CISA KEV",
     "tagMissing": "Pending template",
-    "tagEpss": "EPSS"
+    "tagEpss": "EPSS",
+    "epssCritical": "Critical with likely exploitation",
+    "epssCriticalDescription": "The 20 highest EPSS among CVEs scoring CVSS 9.0 or above",
+    "noEpssCritical": "No critical CVEs with high EPSS",
+    "viewAllInSearch": "View all in search"
   },
   "themes": {
     "default": "Default",

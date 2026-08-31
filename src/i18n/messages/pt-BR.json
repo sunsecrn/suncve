@@ -68,7 +68,11 @@
     "tagNuclei": "Template Nuclei",
     "tagKev": "No CISA KEV",
     "tagMissing": "Template pendente",
-    "tagEpss": "EPSS"
+    "tagEpss": "EPSS",
+    "epssCritical": "Críticas com exploração provável",
+    "epssCriticalDescription": "As 20 de maior EPSS entre as de CVSS 9.0 ou mais",
+    "noEpssCritical": "Nenhuma CVE crítica com EPSS alto",
+    "viewAllInSearch": "Ver todas na busca"
   },
   "themes": {
     "default": "Padrão",

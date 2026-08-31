@@ -21,12 +21,14 @@ function OverViewLayoutInner({
   sales,
   pie_stats,
   bar_stats,
-  area_stats
+  area_stats,
+  epss_critical
 }: {
   sales: React.ReactNode;
   pie_stats: React.ReactNode;
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
+  epss_critical: React.ReactNode;
 }) {
   const {
     isReady,
@@ -87,6 +89,7 @@ function OverViewLayoutInner({
           <div className='col-span-4 md:col-span-3'>{sales}</div>
           <div className='col-span-4'>{area_stats}</div>
           <div className='col-span-4 md:col-span-3'>{pie_stats}</div>
+          <div className='col-span-4 lg:col-span-7'>{epss_critical}</div>
         </div>
       </div>
     </PageContainer>
@@ -97,12 +100,14 @@ export default function OverViewLayout({
   sales,
   pie_stats,
   bar_stats,
-  area_stats
+  area_stats,
+  epss_critical
 }: {
   sales: React.ReactNode;
   pie_stats: React.ReactNode;
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
+  epss_critical: React.ReactNode;
 }) {
   return (
     <SQLiteProvider>
@@ -111,6 +116,7 @@ export default function OverViewLayout({
         pie_stats={pie_stats}
         bar_stats={bar_stats}
         area_stats={area_stats}
+        epss_critical={epss_critical}
       />
     </SQLiteProvider>
   );

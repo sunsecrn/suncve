@@ -1023,6 +1023,13 @@ class databaseSQLite:
         self.cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_score_val ON cve_scores(score)"
         )
+        # Sem este, o EXISTS correlacionado por cve_id (dashboard e detalhe da
+        # CVE) cai no idx_score_val e varre as ~130 mil linhas de score >= 9.0
+        # para cada CVE candidata. Medido: 2047 ms contra 1 ms com o indice, e
+        # no sql.js do navegador a diferenca e ainda maior.
+        self.cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cve_scores_cve_id ON cve_scores(cve_id)"
+        )
         self.cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_cwe_lookup ON cve_cwes(cwe_id)"
         )

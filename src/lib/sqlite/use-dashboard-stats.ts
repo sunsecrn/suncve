@@ -252,6 +252,46 @@ export function useDashboardStats() {
     return result;
   }, [isReady, executeQuery]);
 
+  // A fila de "corrija primeiro": grave se explorada (CVSS 9.0+) e quase certa
+  // de ser explorada (EPSS >= 70%, a faixa do topo da escala). Ordena por EPSS,
+  // porque é a probabilidade que decide a ordem da fila — o CVSS aqui só define
+  // quem entra nela.
+  //
+  // Cerca de metade das CVEs de EPSS >= 70% tem CVSS abaixo de 9 e fica de fora
+  // por construção; quem quiser essas usa o filtro de EPSS na busca.
+  const getCriticalHighEpssCVEs = useCallback(
+    (limit = 20): CriticalCVEWithPOC[] => {
+      if (!isReady) {
+        return [];
+      }
+
+      return executeQuery<CriticalCVEWithPOC>(
+        `
+      SELECT
+        c.cve_id,
+        c.title,
+        c.description,
+        (SELECT MAX(score) FROM cve_scores WHERE cve_id = c.cve_id) as score,
+        c.date_published,
+        c.exists_exploit,
+        c.exists_commit,
+        c.exists_nuclei,
+        c.in_kev,
+        c.missing_nuclei_template,
+        c.epss,
+        c.epss_percentile
+      FROM cves c
+      WHERE c.epss >= 0.7
+        AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)
+      ORDER BY c.epss DESC
+      LIMIT ?
+    `,
+        [limit]
+      );
+    },
+    [isReady, executeQuery]
+  );
+
   // Get CVEs by period with appropriate granularity
   // 30d = week by week, 1y = month by month, 5y = year by year
   const getCVEsByPeriod = useCallback(
@@ -464,6 +504,7 @@ export function useDashboardStats() {
     getSeverityDistribution,
     getEpssDistribution,
     getCriticalCVEsWithPOC,
+    getCriticalHighEpssCVEs,
     getCVEsByPeriod,
     getCWETrend,
     getTopCWEs,
