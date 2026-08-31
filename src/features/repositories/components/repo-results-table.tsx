@@ -209,7 +209,10 @@ export function RepoResultsTable({
                           <IconBrandGithub className='text-muted-foreground h-5 w-5 shrink-0' />
                         )}
                         <div className='min-w-0'>
-                          <span className='block truncate font-medium'>
+                          <span
+                            className='block truncate font-medium'
+                            title={repo.name ?? repo.fullpath}
+                          >
                             {repo.name || repo.fullpath.split('/').pop()}
                           </span>
                           <div className='text-muted-foreground truncate text-xs'>

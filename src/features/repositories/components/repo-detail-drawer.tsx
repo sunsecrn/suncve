@@ -172,9 +172,10 @@ export function RepoDetailDrawer({
   const repoFavActive = studyHydrated && isRepoFav;
   const repoSnapshot = buildRepoSnapshot(repository);
 
+  // O nome ja chega decodificado da camada de dados (use-repository-search).
+  // O encurtamento e feito por CSS (line-clamp-2), que respeita a largura real
+  // em vez de cortar por contagem de caracteres.
   const displayName = name || repoFullpath.split('/').pop() || '';
-  const truncatedName =
-    displayName.length > 100 ? `${displayName.slice(0, 100)}…` : displayName;
 
   const languages = parseJSON<Record<string, number>>(
     repository.languages as string
@@ -214,7 +215,7 @@ export function RepoDetailDrawer({
             <SheetHeader className='space-y-4'>
               <div className='flex items-start justify-between gap-4'>
                 <div className='min-w-0 flex-1'>
-                  <SheetTitle className='flex min-w-0 items-center gap-2 text-xl'>
+                  <SheetTitle className='flex min-w-0 items-start gap-2 text-xl'>
                     {(() => {
                       const meta = getEcosystemMeta(ecosystem);
                       return (
@@ -223,8 +224,8 @@ export function RepoDetailDrawer({
                         />
                       );
                     })()}
-                    <span className='min-w-0 truncate' title={displayName}>
-                      {truncatedName}
+                    <span className='min-w-0 line-clamp-2' title={displayName}>
+                      {displayName}
                     </span>
                     {ecosystem !== 'github' && (
                       <Badge

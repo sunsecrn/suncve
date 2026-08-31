@@ -130,7 +130,9 @@ export function CveMiniCard({
 function repoExternalUrl(snapshot: RepoSnapshot): string {
   if (snapshot.ecosystem === 'wordpress') return `https://${snapshot.fullpath}`;
   if (snapshot.ecosystem === 'npm') {
-    return `https://www.npmjs.com/package/${snapshot.name ?? snapshot.fullpath}`;
+    // encodeURI (e nao encodeURIComponent) para preservar a barra de pacotes
+    // com escopo (@org/pkg); o nome vem de dado externo, entao nunca vai cru.
+    return `https://www.npmjs.com/package/${encodeURI(snapshot.name ?? snapshot.fullpath)}`;
   }
   if (snapshot.ecosystem === 'packagist') {
     return `https://packagist.org/packages/${snapshot.fullpath}`;
@@ -140,19 +142,41 @@ function repoExternalUrl(snapshot: RepoSnapshot): string {
 
 interface RepoMiniCardProps {
   snapshot: RepoSnapshot;
+  /** Sem esta prop o card fica estático — não vira um botão que não faz nada. */
+  onOpen?: (fullpath: string) => void;
   onRemove?: () => void;
   removeLabel?: string;
 }
 
 export function RepoMiniCard({
   snapshot,
+  onOpen,
   onRemove,
   removeLabel
 }: RepoMiniCardProps) {
   const eco = getEcosystemMeta(snapshot.ecosystem);
   const EcoIcon = eco.Icon;
   return (
-    <Card className='gap-0 p-4'>
+    <Card
+      role={onOpen ? 'button' : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onClick={onOpen ? () => onOpen(snapshot.fullpath) : undefined}
+      onKeyDown={
+        onOpen
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onOpen(snapshot.fullpath);
+              }
+            }
+          : undefined
+      }
+      className={cn(
+        'gap-0 p-4',
+        onOpen &&
+          'hover:border-primary/50 hover:bg-muted/40 cursor-pointer transition-colors'
+      )}
+    >
       <div className='flex items-start justify-between gap-3'>
         <div className='min-w-0 flex-1 space-y-2'>
           <div className='flex items-center gap-2'>
@@ -194,7 +218,10 @@ export function RepoMiniCard({
               className='h-8 w-8'
               aria-label={removeLabel}
               title={removeLabel}
-              onClick={onRemove}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemove();
+              }}
             >
               <IconX className='h-4 w-4' />
             </Button>

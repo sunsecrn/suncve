@@ -1,12 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { IconDownload, IconUpload, IconNotebook } from '@tabler/icons-react';
 import { SQLiteProvider, useSQLite } from '@/lib/sqlite';
 import { DB_MANIFEST_URL, DB_FALLBACK_URL } from '@/lib/db-config';
 import { useCVESearch } from '@/lib/sqlite/use-cve-search';
+import { useRepositorySearch } from '@/lib/sqlite/use-repository-search';
 import { useContentReady } from '@/hooks/use-content-ready';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +23,17 @@ import { exportToFile, parseImportFile } from '../lib/backup';
 import { FavoritesSection } from './favorites-section';
 import { HistorySection } from './history-section';
 import { LabelsSection } from './labels-section';
+
+// Import dinâmico para quebrar o ciclo estático de módulos: RepoDetailDrawer
+// importa CVEDetailDrawer, que esta página já importa acima. Carrega sob
+// demanda (só ao clicar num repositório favoritado).
+const RepoDetailDrawer = dynamic(
+  () =>
+    import('@/features/repositories/components/repo-detail-drawer').then(
+      (m) => m.RepoDetailDrawer
+    ),
+  { ssr: false }
+);
 
 function StudyPageContentInner() {
   const t = useTranslations('studies');
@@ -37,10 +50,15 @@ function StudyPageContentInner() {
     loadDatabaseWithManifest
   } = useSQLite();
   const { getCVEDetails } = useCVESearch();
+  const { getRepositoryDetails } = useRepositorySearch();
   const hydrated = useStudyHydrated();
   const importData = useStudyStore((s) => s.importData);
 
   const [selectedCve, setSelectedCve] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
+  const [selectedRepo, setSelectedRepo] = useState<Record<
     string,
     unknown
   > | null>(null);
@@ -78,6 +96,24 @@ function StudyPageContentInner() {
     [isReady, getCVEDetails, t]
   );
 
+  // Espelha openCve: o snapshot guardado só tem 4 campos, então o drawer precisa
+  // da linha completa de `repositories` (+ cve_count) vinda do banco.
+  const openRepo = useCallback(
+    (fullpath: string) => {
+      if (!isReady) {
+        toast.info(t('dbLoading'));
+        return;
+      }
+      const details = getRepositoryDetails(fullpath);
+      if (details) {
+        setSelectedRepo(details as Record<string, unknown>);
+      } else {
+        toast.error(t('repoNotFound', { path: fullpath }));
+      }
+    },
+    [isReady, getRepositoryDetails, t]
+  );
+
   const handleImportFile = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -96,7 +132,7 @@ function StudyPageContentInner() {
   };
 
   return (
-    <div className='flex min-h-[calc(100svh-4rem)] flex-1 flex-col p-4 pb-8 md:px-6'>
+    <div className='flex flex-1 flex-col p-4 pb-8 md:px-6'>
       {/* Header */}
       <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
         <div>
@@ -147,7 +183,7 @@ function StudyPageContentInner() {
             <TabsTrigger value='labels'>{t('tabs.labels')}</TabsTrigger>
           </TabsList>
           <TabsContent value='favorites' className='mt-4'>
-            <FavoritesSection onOpenCve={openCve} />
+            <FavoritesSection onOpenCve={openCve} onOpenRepo={openRepo} />
           </TabsContent>
           <TabsContent value='history' className='mt-4'>
             <HistorySection onOpenCve={openCve} />
@@ -163,6 +199,14 @@ function StudyPageContentInner() {
         isOpen={!!selectedCve}
         onClose={() => setSelectedCve(null)}
       />
+
+      {selectedRepo && (
+        <RepoDetailDrawer
+          repository={selectedRepo}
+          isOpen={!!selectedRepo}
+          onClose={() => setSelectedRepo(null)}
+        />
+      )}
     </div>
   );
 }

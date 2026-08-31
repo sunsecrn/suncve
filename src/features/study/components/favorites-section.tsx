@@ -11,9 +11,11 @@ import {
 import { EmptyState } from './empty-state';
 
 export function FavoritesSection({
-  onOpenCve
+  onOpenCve,
+  onOpenRepo
 }: {
   onOpenCve: (cveId: string) => void;
+  onOpenRepo: (fullpath: string) => void;
 }) {
   const t = useTranslations('studies.favorites');
   const favoriteCves = useStudyStore((s) => s.favoriteCves);
@@ -70,6 +72,7 @@ export function FavoritesSection({
                 <RepoMiniCard
                   key={fp}
                   snapshot={snap}
+                  onOpen={onOpenRepo}
                   onRemove={() => toggleRepo(snap)}
                   removeLabel={t('remove')}
                 />

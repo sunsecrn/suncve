@@ -449,6 +449,7 @@
     "description": "Seus favoritos, anotações, histórico e listas de estudo — salvos neste navegador.",
     "dbLoading": "Carregando a base para abrir os detalhes…",
     "cveNotFound": "Não foi possível carregar {id}.",
+    "repoNotFound": "Não foi possível carregar {path}.",
     "actions": {
       "favorite": "Favoritar",
       "favorited": "Favoritada",
