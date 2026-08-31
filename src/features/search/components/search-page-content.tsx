@@ -16,7 +16,8 @@ import { StatsCards } from '@/features/search/components/stats-cards';
 import { useContentReady } from '@/hooks/use-content-ready';
 import {
   type CVESearchResult,
-  type SearchResultsPage
+  type SearchResultsPage,
+  type EpssCounts
 } from '@/features/search/types';
 
 // Debounce delay for search (ms) - 1 second for better UX
@@ -63,12 +64,14 @@ function SearchPageContentInner() {
     withExploit: number;
     withCommit: number;
     inKev: number;
+    epss: EpssCounts;
   }>({
     totalCVEs: 0,
     totalRepos: 0,
     withExploit: 0,
     withCommit: 0,
-    inKev: 0
+    inKev: 0,
+    epss: { 'very-low': 0, low: 0, moderate: 0, high: 0, critical: 0 }
   });
 
   // Debounce filters to avoid excessive queries while typing

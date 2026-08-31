@@ -70,10 +70,10 @@ curl 'http://localhost:8787/api/stats/severity-distribution?period=30d'
 | `GET /api/cwe-categories` | CWE category definitions |
 
 CVE query params mirror the web UI's URL keys: `q, cvssMin, cvssMax, severity,
-cwes, cwe_cat, exploit, repo, commit, nuclei, ecosystem, lang, starsMin,
+epss, cwes, cwe_cat, exploit, repo, commit, nuclei, ecosystem, lang, starsMin,
 starsMax, sizeMin, sizeMax, pop_downloads, pop_downloads_max, period, date,
-repo_filter, sort, order, page, page_size`. `severity`, `cwes`, `lang` are
-comma-separated. `exploit/repo/commit/nuclei` are tri-state (`true`/`false`/absent).
+repo_filter, sort, order, page, page_size`. `severity`, `epss`, `cwes`, `lang`
+are comma-separated (`epss` buckets: `very-low, low, moderate, high, critical`). `exploit/repo/commit/nuclei` are tri-state (`true`/`false`/absent).
 
 ## Run the MCP server
 

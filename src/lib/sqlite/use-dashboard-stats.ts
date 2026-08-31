@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useSQLite } from './sqlite-context';
+import type { EpssCounts } from '@/features/search/types';
 
 // Types for dashboard data
 export interface DashboardStats {
@@ -21,6 +22,12 @@ export interface SeverityDistribution {
   unknown: number;
 }
 
+// Distribuição do catálogo pelas cinco faixas de EPSS, mais as CVEs que ainda
+// não têm score publicado (que não é o mesmo que probabilidade zero).
+export interface EpssDistributionStats extends EpssCounts {
+  unscored: number;
+}
+
 export interface CriticalCVEWithPOC {
   cve_id: string;
   title: string | null;
@@ -33,6 +40,8 @@ export interface CriticalCVEWithPOC {
   exists_nuclei: number;
   in_kev: number;
   missing_nuclei_template: number;
+  epss: number | null;
+  epss_percentile: number | null;
 }
 
 export interface CVEsByPeriod {
@@ -157,6 +166,49 @@ export function useDashboardStats() {
     [isReady, executeQuery]
   );
 
+  // Distribuição de EPSS no catálogo inteiro. Sem recorte de data de propósito:
+  // CVE recém-publicada quase sempre começa com EPSS baixo, então um recorte de
+  // 30 dias faria a barra virar um bloco só da faixa mais baixa.
+  const getEpssDistribution = useCallback((): EpssDistributionStats => {
+    if (!isReady) {
+      return {
+        'very-low': 0,
+        low: 0,
+        moderate: 0,
+        high: 0,
+        critical: 0,
+        unscored: 0
+      };
+    }
+
+    const result = executeQuery<{
+      veryLow: number;
+      low: number;
+      moderate: number;
+      high: number;
+      critical: number;
+      unscored: number;
+    }>(`
+      SELECT
+        SUM(CASE WHEN epss >= 0.7 THEN 1 ELSE 0 END) as critical,
+        SUM(CASE WHEN epss >= 0.36 AND epss < 0.7 THEN 1 ELSE 0 END) as high,
+        SUM(CASE WHEN epss >= 0.1 AND epss < 0.36 THEN 1 ELSE 0 END) as moderate,
+        SUM(CASE WHEN epss >= 0.01 AND epss < 0.1 THEN 1 ELSE 0 END) as low,
+        SUM(CASE WHEN epss >= 0 AND epss < 0.01 THEN 1 ELSE 0 END) as veryLow,
+        SUM(CASE WHEN epss IS NULL THEN 1 ELSE 0 END) as unscored
+      FROM cves
+    `);
+
+    return {
+      'very-low': result[0]?.veryLow ?? 0,
+      low: result[0]?.low ?? 0,
+      moderate: result[0]?.moderate ?? 0,
+      high: result[0]?.high ?? 0,
+      critical: result[0]?.critical ?? 0,
+      unscored: result[0]?.unscored ?? 0
+    };
+  }, [isReady, executeQuery]);
+
   // Get top 5 critical CVEs with exploit
   const getCriticalCVEsWithPOC = useCallback((): CriticalCVEWithPOC[] => {
     if (!isReady) {
@@ -174,6 +226,8 @@ export function useDashboardStats() {
       exists_nuclei: number;
       in_kev: number;
       missing_nuclei_template: number;
+      epss: number | null;
+      epss_percentile: number | null;
     }>(`
       SELECT
         c.cve_id,
@@ -185,7 +239,9 @@ export function useDashboardStats() {
         c.exists_commit,
         c.exists_nuclei,
         c.in_kev,
-        c.missing_nuclei_template
+        c.missing_nuclei_template,
+        c.epss,
+        c.epss_percentile
       FROM cves c
       WHERE c.exists_exploit = 1
         AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)
@@ -195,6 +251,46 @@ export function useDashboardStats() {
 
     return result;
   }, [isReady, executeQuery]);
+
+  // A fila de "corrija primeiro": grave se explorada (CVSS 9.0+) e quase certa
+  // de ser explorada (EPSS >= 70%, a faixa do topo da escala). Ordena por EPSS,
+  // porque é a probabilidade que decide a ordem da fila — o CVSS aqui só define
+  // quem entra nela.
+  //
+  // Cerca de metade das CVEs de EPSS >= 70% tem CVSS abaixo de 9 e fica de fora
+  // por construção; quem quiser essas usa o filtro de EPSS na busca.
+  const getCriticalHighEpssCVEs = useCallback(
+    (limit = 20): CriticalCVEWithPOC[] => {
+      if (!isReady) {
+        return [];
+      }
+
+      return executeQuery<CriticalCVEWithPOC>(
+        `
+      SELECT
+        c.cve_id,
+        c.title,
+        c.description,
+        (SELECT MAX(score) FROM cve_scores WHERE cve_id = c.cve_id) as score,
+        c.date_published,
+        c.exists_exploit,
+        c.exists_commit,
+        c.exists_nuclei,
+        c.in_kev,
+        c.missing_nuclei_template,
+        c.epss,
+        c.epss_percentile
+      FROM cves c
+      WHERE c.epss >= 0.7
+        AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)
+      ORDER BY c.epss DESC
+      LIMIT ?
+    `,
+        [limit]
+      );
+    },
+    [isReady, executeQuery]
+  );
 
   // Get CVEs by period with appropriate granularity
   // 30d = week by week, 1y = month by month, 5y = year by year
@@ -406,7 +502,9 @@ export function useDashboardStats() {
   return {
     getRecentStats,
     getSeverityDistribution,
+    getEpssDistribution,
     getCriticalCVEsWithPOC,
+    getCriticalHighEpssCVEs,
     getCVEsByPeriod,
     getCWETrend,
     getTopCWEs,

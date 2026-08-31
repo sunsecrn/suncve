@@ -20,6 +20,9 @@ export interface CVE {
   list_commit: string | null; // JSON string
   list_references: string | null; // JSON string
   list_nuclei: string | null; // JSON string (array of NucleiTemplate)
+  epss: number | null; // EPSS probability [0-1]
+  epss_percentile: number | null; // EPSS percentile [0-1]
+  epss_date: string | null; // score_date do arquivo EPSS (YYYY-MM-DD)
 }
 
 export interface CVEWithDetails extends CVE {
@@ -116,6 +119,115 @@ export function getSeverityColor(severity: Severity): string {
   }
 }
 
+// EPSS (Exploit Prediction Scoring System) — probabilidade [0-1] de a CVE ser
+// explorada nos próximos 30 dias. Os limiares abaixo são de probabilidade bruta,
+// não de percentil: assim "barra cheia" significa risco real e não apenas
+// "acima da mediana". A distribuição é fortemente enviesada para baixo — os
+// percentuais são do catálogo completo (~366 mil CVEs) em 2026-08-30.
+export type EpssLevel =
+  | 'none' // sem score publicado
+  | 'very-low' // < 1%      — 60,4% das CVEs
+  | 'low' // 1% – 10%  — 34,9%
+  | 'moderate' // 10% – 36% —  3,1%
+  | 'high' // 36% – 70% —  1,0%
+  | 'critical'; // >= 70%    —  0,7%
+
+export function getEpssLevel(epss: number | null | undefined): EpssLevel {
+  if (epss === null || epss === undefined) return 'none';
+  if (epss >= 0.7) return 'critical';
+  if (epss >= 0.36) return 'high';
+  if (epss >= 0.1) return 'moderate';
+  if (epss >= 0.01) return 'low';
+  return 'very-low';
+}
+
+// 'none' é ausência de score publicado, não um bucket: fica de fora do filtro.
+export type EpssFilterLevel = Exclude<EpssLevel, 'none'>;
+
+// Faixas por nível, usadas para montar o WHERE do filtro em SQL.
+export const EPSS_LEVEL_RANGE: Record<
+  EpssFilterLevel,
+  { min: number; max: number | null }
+> = {
+  'very-low': { min: 0, max: 0.01 },
+  low: { min: 0.01, max: 0.1 },
+  moderate: { min: 0.1, max: 0.36 },
+  high: { min: 0.36, max: 0.7 },
+  critical: { min: 0.7, max: null }
+};
+
+// Classes Tailwind literais e completas: com output:'export' + Tailwind v4 o JIT
+// não detecta classes montadas por template string.
+export const EPSS_LEVEL_META: Record<
+  EpssLevel,
+  { bars: number; barClass: string; textClass: string; badgeClass: string }
+> = {
+  none: {
+    bars: 0,
+    barClass: 'bg-muted-foreground/30',
+    textClass: 'text-muted-foreground',
+    badgeClass: ''
+  },
+  'very-low': {
+    bars: 1,
+    barClass: 'bg-slate-400',
+    textClass: 'text-slate-600 dark:text-slate-400',
+    badgeClass: 'bg-slate-400 hover:bg-slate-500'
+  },
+  low: {
+    bars: 2,
+    barClass: 'bg-sky-500',
+    textClass: 'text-sky-700 dark:text-sky-400',
+    badgeClass: 'bg-sky-500 hover:bg-sky-600'
+  },
+  moderate: {
+    bars: 3,
+    barClass: 'bg-yellow-500',
+    textClass: 'text-yellow-700 dark:text-yellow-500',
+    badgeClass: 'bg-yellow-500 hover:bg-yellow-600 text-black'
+  },
+  high: {
+    bars: 4,
+    barClass: 'bg-orange-500',
+    textClass: 'text-orange-700 dark:text-orange-400',
+    badgeClass: 'bg-orange-500 hover:bg-orange-600'
+  },
+  critical: {
+    bars: 5,
+    barClass: 'bg-rose-600',
+    textClass: 'text-rose-700 dark:text-rose-400',
+    badgeClass: 'bg-rose-600 hover:bg-rose-700'
+  }
+};
+
+// Contagem de CVEs por faixa, usada pelos cards de distribuição.
+export type EpssCounts = Record<EpssFilterLevel, number>;
+
+export const EPSS_LEVELS: EpssFilterLevel[] = [
+  'critical',
+  'high',
+  'moderate',
+  'low',
+  'very-low'
+];
+
+// 0.97812 -> "97,8%" (pt-BR) / "97.8%" (en). Os extremos ganham tratamento
+// próprio: abaixo de 0,1% evitaria "0.0%", e o topo (0.99999, o maior score que
+// o EPSS publica) arredondaria para "100%" — afirmar certeza numa probabilidade
+// que por definição nunca chega a 1.
+export function formatEpss(
+  epss: number | null | undefined,
+  locale = 'en'
+): string {
+  if (epss === null || epss === undefined) return '—';
+  if (epss > 0 && epss < 0.001) return '< 0.1%';
+  if (epss < 1 && epss > 0.999) return '> 99.9%';
+  return new Intl.NumberFormat(locale, {
+    style: 'percent',
+    maximumFractionDigits: 1
+  }).format(epss);
+}
+
 export type DatePeriod =
   | 'today'
   | '7d'
@@ -131,6 +243,7 @@ export interface SearchFilters {
   cvssMin: number;
   cvssMax: number;
   severity: Severity[];
+  epssLevel: EpssFilterLevel[];
   cwes: string[];
   hasExploit: boolean | null;
   hasRepository: boolean | null;
@@ -158,6 +271,7 @@ export const defaultFilters: SearchFilters = {
   cvssMin: 0,
   cvssMax: 10,
   severity: [],
+  epssLevel: [],
   cwes: [],
   hasExploit: null,
   hasRepository: null,
@@ -184,6 +298,7 @@ export type SortField =
   | 'date_published'
   | 'date_updated'
   | 'score'
+  | 'epss'
   | 'stars'
   | 'created_repository'
   | 'updated_repository';
@@ -212,6 +327,8 @@ export interface CVESearchResult {
   missing_nuclei_template: boolean;
   max_score: number | null;
   severity: Severity;
+  epss: number | null;
+  epss_percentile: number | null;
   cwe_list: string | null;
   vendor_list: string | null;
   product_list: string | null;

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import zipfile
+import gzip
 import sqlite3
 import os
 import json
@@ -12,6 +13,8 @@ import shutil
 import hashlib
 import ipaddress
 import html
+import subprocess
+import tempfile
 from functools import lru_cache
 from pathlib import Path
 from datetime import datetime, timezone
@@ -855,7 +858,10 @@ class databaseSQLite:
             list_commit JSON,
             list_references JSON,
             exists_nuclei BOOLEAN DEFAULT 0,
-            list_nuclei JSON
+            list_nuclei JSON,
+            epss REAL,
+            epss_percentile REAL,
+            epss_date TEXT
         )
         """)
 
@@ -889,6 +895,19 @@ class databaseSQLite:
         # Migração: missing template indicator (edoardottt/missing-cve-nuclei-templates)
         for column_ddl in (
             "ALTER TABLE cves ADD COLUMN missing_nuclei_template BOOLEAN DEFAULT 0",
+        ):
+            try:
+                self.cursor.execute(column_ddl)
+            except sqlite3.OperationalError:
+                pass  # Coluna já existe
+
+        # Migração: campos EPSS (empiricalsec/epss_scores)
+        # epss/epss_percentile ficam NULL enquanto a CVE não tem score publicado,
+        # o que é diferente de "score zero" — a UI distingue os dois casos.
+        for column_ddl in (
+            "ALTER TABLE cves ADD COLUMN epss REAL",
+            "ALTER TABLE cves ADD COLUMN epss_percentile REAL",
+            "ALTER TABLE cves ADD COLUMN epss_date TEXT",
         ):
             try:
                 self.cursor.execute(column_ddl)
@@ -1004,6 +1023,13 @@ class databaseSQLite:
         self.cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_score_val ON cve_scores(score)"
         )
+        # Sem este, o EXISTS correlacionado por cve_id (dashboard e detalhe da
+        # CVE) cai no idx_score_val e varre as ~130 mil linhas de score >= 9.0
+        # para cada CVE candidata. Medido: 2047 ms contra 1 ms com o indice, e
+        # no sql.js do navegador a diferenca e ainda maior.
+        self.cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_cve_scores_cve_id ON cve_scores(cve_id)"
+        )
         self.cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_cwe_lookup ON cve_cwes(cwe_id)"
         )
@@ -1028,6 +1054,7 @@ class databaseSQLite:
         self.cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_cves_exists_nuclei ON cves(exists_nuclei)"
         )
+        self.cursor.execute("CREATE INDEX IF NOT EXISTS idx_cves_epss ON cves(epss)")
         self.cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_manifest_npm ON repo_manifests(npm_name)"
         )
@@ -4210,6 +4237,257 @@ class KevEnrichment:
         )
 
 
+class EpssScores:
+    """
+    Enriquece CVEs com o EPSS (Exploit Prediction Scoring System) a partir do
+    repositório empiricalsec/epss_scores, o repositório oficial de scores atuais
+    e históricos do EPSS (https://www.first.org/epss/).
+
+    Atualiza as colunas:
+    - epss: probabilidade [0-1] de exploração nos próximos 30 dias
+    - epss_percentile: percentil do score em relação a todas as CVEs pontuadas
+    - epss_date: score_date do arquivo processado (vem do cabeçalho, não do nome)
+
+    O repositório tem ~2,5 GB (um CSV .gz de ~2,5 MB por dia desde 2021-04-14),
+    então clonar tudo é inviável. A estratégia é um clone sem blobs:
+
+        git clone --filter=blob:none --no-checkout --depth 1   -> ~172 KB
+        git ls-tree -r --name-only HEAD                        -> lista TODOS os anos, 0 blobs
+        git sparse-checkout set <um arquivo> && git checkout    -> baixa só ~2,5 MB
+
+    Como o repositório só ganha um arquivo por dia, o nome do último arquivo
+    processado fica em sources.last_release_file e a execução seguinte sai cedo
+    se nada mudou — nunca descompactamos duas vezes o mesmo dia.
+    """
+
+    PROJECT_ROOT = Path(__file__).parent.parent.absolute()
+    DATA_DIR = PROJECT_ROOT / "data"
+
+    SOURCE_NAME = "epss_scores"
+    REPO_URL = "https://github.com/empiricalsec/epss_scores.git"
+    RAW_BASE = "https://raw.githubusercontent.com/empiricalsec/epss_scores/main"
+    API_CONTENTS = "https://api.github.com/repos/empiricalsec/epss_scores/contents"
+
+    # 2026/epss_scores-2026-08-30.csv.gz — o prefixo de ano descarta beta_scores/,
+    # que são scores da v5 em beta e não o modelo em produção.
+    FILE_RE = re.compile(r"^(\d{4})/epss_scores-(\d{4}-\d{2}-\d{2})\.csv\.gz$")
+
+    # score_date do cabeçalho: #model_version:v2026.06.15,score_date:2026-08-30T12:03:42Z
+    SCORE_DATE_RE = re.compile(r"score_date:\s*(\d{4}-\d{2}-\d{2})")
+
+    BATCH_SIZE = 5000
+
+    def run(self, db: "databaseSQLite") -> None:
+        db.createTable()
+
+        info = db.getSourceInfo(self.SOURCE_NAME) or {}
+        last_seen = info.get("last_release_file") or ""
+
+        tmpdir = tempfile.mkdtemp(prefix="epss-")
+        try:
+            latest = self._resolveLatest(tmpdir, last_seen)
+            if not latest:
+                return
+
+            rel_path, csv_path = latest
+            filename = rel_path.rsplit("/", 1)[-1]
+
+            self._ingest(db, csv_path, filename)
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
+
+    def _resolveLatest(self, tmpdir: str, last_seen: str) -> tuple[str, Path] | None:
+        """Baixa o CSV mais recente e devolve (caminho no repo, arquivo local)."""
+        rel_path = None
+
+        repo_dir = Path(tmpdir) / "repo"
+        cloned = self._git(
+            [
+                "clone",
+                "--filter=blob:none",
+                "--no-checkout",
+                "--depth",
+                "1",
+                self.REPO_URL,
+                str(repo_dir),
+            ]
+        )
+        # Vários subcomandos do git escrevem só em stderr, então o sucesso é
+        # "não retornou None", nunca a veracidade da string.
+        if cloned is not None:
+            listing = self._git(["-C", str(repo_dir), "ls-tree", "-r", "--name-only", "HEAD"])
+            if listing:
+                rel_path = self._pickLatest(listing.splitlines())
+
+            if rel_path:
+                print(f"[INFO] epss: arquivo mais recente no repositório: {rel_path}")
+                if rel_path.rsplit("/", 1)[-1] == last_seen:
+                    print(f"[INFO] epss: nenhum arquivo novo ({last_seen}), pulando")
+                    return None
+
+                ok = self._git(
+                    ["-C", str(repo_dir), "sparse-checkout", "init", "--no-cone"]
+                ) is not None and self._git(
+                    ["-C", str(repo_dir), "sparse-checkout", "set", rel_path]
+                ) is not None and self._git(["-C", str(repo_dir), "checkout"]) is not None
+
+                csv_path = repo_dir / rel_path
+                if ok and csv_path.is_file():
+                    size_mb = csv_path.stat().st_size / 1024 / 1024
+                    print(f"[INFO] epss: baixado {rel_path} ({size_mb:.1f} MB)")
+                    return rel_path, csv_path
+
+        # Fallback: sem git (ou clone falhou), busca o arquivo direto pelo raw.
+        print("[WARN] epss: clone indisponível, usando download direto (raw.githubusercontent)")
+        rel_path = rel_path or self._pickLatestFromApi()
+        if not rel_path:
+            print("[WARN] epss: não foi possível descobrir o arquivo mais recente")
+            return None
+
+        if rel_path.rsplit("/", 1)[-1] == last_seen:
+            print(f"[INFO] epss: nenhum arquivo novo ({last_seen}), pulando")
+            return None
+
+        csv_path = Path(tmpdir) / rel_path.rsplit("/", 1)[-1]
+        try:
+            download_to(f"{self.RAW_BASE}/{rel_path}", csv_path)
+        except Exception as e:
+            print(f"[WARN] epss: falha ao baixar {rel_path}: {e}")
+            return None
+
+        return rel_path, csv_path
+
+    def _git(self, args: list[str]) -> str | None:
+        """Roda git e devolve o stdout, ou None se falhar."""
+        try:
+            proc = subprocess.run(
+                ["git", *args],
+                capture_output=True,
+                text=True,
+                timeout=300,
+                check=False,
+            )
+        except (OSError, subprocess.SubprocessError) as e:
+            print(f"[WARN] epss: git {args[0]} falhou: {e}")
+            return None
+
+        if proc.returncode != 0:
+            print(f"[WARN] epss: git {args[0]} retornou {proc.returncode}: {proc.stderr.strip()}")
+            return None
+
+        return proc.stdout
+
+    def _pickLatest(self, paths: list[str]) -> str | None:
+        """Escolhe o CSV de data mais alta entre todos os anos."""
+        matches = [(m.group(2), m.group(0)) for m in map(self.FILE_RE.match, paths) if m]
+        if not matches:
+            return None
+        return max(matches)[1]
+
+    def _pickLatestFromApi(self) -> str | None:
+        """Descobre o arquivo mais recente pela API de contents (só no fallback)."""
+        try:
+            resp = http_get(self.API_CONTENTS, headers={"User-Agent": "SunCVE/1.0"}, timeout=60)
+            resp.raise_for_status()
+            years = sorted(
+                (item["name"] for item in resp.json() if item.get("type") == "dir"),
+                reverse=True,
+            )
+            for year in years:
+                if not year.isdigit():
+                    continue
+                resp = http_get(
+                    f"{self.API_CONTENTS}/{year}",
+                    headers={"User-Agent": "SunCVE/1.0"},
+                    timeout=60,
+                )
+                resp.raise_for_status()
+                names = [f"{year}/{item['name']}" for item in resp.json()]
+                latest = self._pickLatest(names)
+                if latest:
+                    return latest
+        except Exception as e:
+            print(f"[WARN] epss: falha ao consultar a API de contents: {e}")
+        return None
+
+    def _ingest(self, db: "databaseSQLite", csv_path: Path, filename: str) -> None:
+        started_at = datetime.now(timezone.utc).isoformat()
+
+        score_date = ""
+        rows: list[tuple] = []
+        malformed = 0
+
+        # Nem toda CVE do EPSS está no nosso banco (e vice-versa). Um SELECT único
+        # evita 366 mil consultas de existência, uma por linha.
+        db.cursor.execute("SELECT cve_id FROM cves")
+        known = {row[0] for row in db.cursor.fetchall()}
+        print(f"[INFO] epss: {len(known)} CVEs no banco para casar")
+
+        with gzip.open(csv_path, "rt", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                if line.startswith("#"):
+                    match = self.SCORE_DATE_RE.search(line)
+                    if match:
+                        score_date = match.group(1)
+                    continue
+                if line.startswith("cve,"):
+                    continue  # cabeçalho: cve,epss,percentile
+
+                parts = line.split(",")
+                if len(parts) != 3:
+                    malformed += 1
+                    continue
+
+                cve_id = parts[0].strip().upper()
+                if cve_id not in known:
+                    continue
+
+                try:
+                    epss = float(parts[1])
+                    percentile = float(parts[2])
+                except ValueError:
+                    malformed += 1
+                    continue
+
+                rows.append((epss, percentile, score_date, cve_id))
+
+        if not rows:
+            print(f"[WARN] epss: nenhuma linha aproveitável em {filename}")
+            return
+
+        total = len(rows)
+        skipped = len(known) - total
+        print(f"[INFO] epss: score_date {score_date or 'desconhecido'}, {total} CVEs a atualizar")
+
+        for start in range(0, total, self.BATCH_SIZE):
+            db.cursor.executemany(
+                """
+                UPDATE cves SET
+                  epss = ?,
+                  epss_percentile = ?,
+                  epss_date = ?
+                WHERE cve_id = ?
+                """,
+                rows[start : start + self.BATCH_SIZE],
+            )
+            db.conn.commit()
+
+        db.updateSource(
+            self.SOURCE_NAME,
+            last_verified=started_at,
+            last_updated=score_date or started_at,
+            last_release_file=filename,
+        )
+
+        print(
+            f"[INFO] epss: enriched {total} CVEs, {skipped} CVEs do banco sem score EPSS"
+            + (f", {malformed} linhas malformadas" if malformed else "")
+        )
+
+
 class WordfenceNucleiTemplates:
     """
     Enriquece CVEs com templates Nuclei do repositório topscoder/nuclei-wordfence-cve.
@@ -5165,6 +5443,7 @@ def main() -> None:
             "npm",
             "packagist",
             "kev",
+            "epss",
             "wordfence-nuclei",
             "missing-templates",
             "update-fixes",
@@ -5179,6 +5458,7 @@ def main() -> None:
             "'advisories' (enrich CVEs from GitHub Advisory Database), "
             "'pocs' (enrich exploit fields from PoC-in-GitHub), "
             "'nuclei' (enrich exists_nuclei/list_nuclei from projectdiscovery/nuclei-templates), "
+            "'epss' (enrich epss/epss_percentile from empiricalsec/epss_scores), "
             "'wordpress' (enrich WordPress plugins with install/download metrics), "
             "'scan-manifests' (read package.json/composer.json name from each repo's default branch), "
             "'osv-npm' (override repo npm names from the OSV npm feed, CVE->package), "
@@ -5186,7 +5466,7 @@ def main() -> None:
             "'packagist' (enrich repos with Packagist package metadata using the scanned name), "
             "'update-fixes' (recalculate commits_fix), "
             "'manifest' (generate public/db/manifest.json), "
-            "'all' (cves+repos+advisories+pocs+nuclei+wordpress+scan-manifests+osv-npm+npm+packagist+manifest)"
+            "'all' (cves+repos+advisories+pocs+nuclei+epss+wordpress+scan-manifests+osv-npm+npm+packagist+manifest)"
         ),
     )
     parser.add_argument(
@@ -5367,6 +5647,13 @@ def main() -> None:
         db_path = CVElistV5.DATA_DIR / "source.sqlite"
         db = databaseSQLite(db_path)
         KevEnrichment().run(db)
+        db.conn.close()
+
+    if args.command in ["epss", "all"]:
+        print("[INFO] Enriching with EPSS scores (empiricalsec/epss_scores)...")
+        db_path = CVElistV5.DATA_DIR / "source.sqlite"
+        db = databaseSQLite(db_path)
+        EpssScores().run(db)
         db.conn.close()
 
     if args.command in ["wordfence-nuclei", "all"]:

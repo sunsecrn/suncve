@@ -130,6 +130,10 @@ jobs:
         run: |
           python scripts/create-manifest.py kev
 
+      - name: Enrich EPSS Scores
+        run: |
+          python scripts/create-manifest.py epss
+
       - name: Enrich WordPress Plugin Metrics
         run: |
           python scripts/create-manifest.py wordpress

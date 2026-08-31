@@ -2,6 +2,7 @@
 // new tri-state `hasNuclei` filter (Nuclei-template enrichment).
 
 import type { Severity } from './severity.js';
+import type { EpssFilterLevel } from './epss.js';
 
 export type DatePeriod =
   | 'today'
@@ -18,6 +19,7 @@ export interface SearchFilters {
   cvssMin: number;
   cvssMax: number;
   severity: Severity[];
+  epssLevel: EpssFilterLevel[];
   cwes: string[];
   hasExploit: boolean | null;
   hasRepository: boolean | null;
@@ -42,6 +44,7 @@ export const defaultFilters: SearchFilters = {
   cvssMin: 0,
   cvssMax: 10,
   severity: [],
+  epssLevel: [],
   cwes: [],
   hasExploit: null,
   hasRepository: null,
@@ -66,6 +69,7 @@ export type SortField =
   | 'date_published'
   | 'date_updated'
   | 'score'
+  | 'epss'
   | 'stars'
   | 'created_repository'
   | 'updated_repository';
@@ -88,6 +92,8 @@ export interface CVESearchResult {
   exists_nuclei: boolean;
   max_score: number | null;
   severity: Severity;
+  epss: number | null;
+  epss_percentile: number | null;
   cwe_list: string | null;
   vendor_list: string | null;
   product_list: string | null;

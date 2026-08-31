@@ -8,6 +8,7 @@
 
 import type { Db } from './db.js';
 import { getSeverityFromScore } from './severity.js';
+import { EPSS_LEVEL_RANGE } from './epss.js';
 import { getCWEsFromCategory } from './cwe-data.js';
 import type {
   SearchFilters,
@@ -40,9 +41,11 @@ function parseJsonArray(value: unknown): unknown[] {
 
 export class SunCveQueries {
   private readonly hasNucleiCol: boolean;
+  private readonly hasEpssCol: boolean;
 
   constructor(private readonly db: Db) {
     this.hasNucleiCol = db.hasColumn('cves', 'exists_nuclei');
+    this.hasEpssCol = db.hasColumn('cves', 'epss');
   }
 
   private repoCol(name: string, expr = 'r'): string {
@@ -50,6 +53,28 @@ export class SunCveQueries {
     return this.db.hasColumn('repositories', name)
       ? `${expr}.${name}`
       : `NULL AS ${name}`;
+  }
+
+  /**
+   * Contagem por faixa de EPSS, com os mesmos cortes de epss.ts. Contra um
+   * snapshot anterior à coluna, devolve zeros em vez de estourar.
+   */
+  private epssBucketsSelect(mode: 'sub' | 'agg'): string {
+    const buckets: [string, string][] = [
+      ['epssCritical', 'epss >= 0.7'],
+      ['epssHigh', 'epss >= 0.36 AND epss < 0.7'],
+      ['epssModerate', 'epss >= 0.1 AND epss < 0.36'],
+      ['epssLow', 'epss >= 0.01 AND epss < 0.1'],
+      ['epssVeryLow', 'epss >= 0 AND epss < 0.01']
+    ];
+    return buckets
+      .map(([alias, cond]) => {
+        if (!this.hasEpssCol) return `0 as ${alias}`;
+        return mode === 'sub'
+          ? `(SELECT COUNT(*) FROM cves WHERE ${cond}) as ${alias}`
+          : `SUM(CASE WHEN ${cond} THEN 1 ELSE 0 END) as ${alias}`;
+      })
+      .join(',\n        ');
   }
 
   // ---- CVE search -------------------------------------------------------
@@ -101,6 +126,24 @@ export class SunCveQueries {
         conditions.push(
           `c.cve_id IN (SELECT cve_id FROM cve_scores WHERE ${ranges.join(' OR ')})`
         );
+      }
+    }
+
+    // EPSS buckets — same thresholds as the web UI (see epss.ts). Silently
+    // ignored on snapshots predating the epss column.
+    if (this.hasEpssCol && filters.epssLevel.length > 0) {
+      const ranges: string[] = [];
+      for (const level of filters.epssLevel) {
+        const range = EPSS_LEVEL_RANGE[level];
+        if (!range) continue;
+        ranges.push(
+          range.max === null
+            ? `c.epss >= ${range.min}`
+            : `(c.epss >= ${range.min} AND c.epss < ${range.max})`
+        );
+      }
+      if (ranges.length > 0) {
+        conditions.push(`(${ranges.join(' OR ')})`);
       }
     }
 
@@ -302,6 +345,11 @@ export class SunCveQueries {
       case 'score':
         orderBy = `s.max_score ${sort.order.toUpperCase()} NULLS LAST`;
         break;
+      case 'epss':
+        if (this.hasEpssCol) {
+          orderBy = `c.epss ${sort.order.toUpperCase()} NULLS LAST`;
+        }
+        break;
       case 'stars':
         orderBy = `ra.repo_stars ${sort.order.toUpperCase()} NULLS LAST`;
         break;
@@ -310,6 +358,9 @@ export class SunCveQueries {
     const nucleiSelect = this.hasNucleiCol
       ? 'c.exists_nuclei'
       : '0 AS exists_nuclei';
+    const epssSelect = this.hasEpssCol
+      ? 'c.epss, c.epss_percentile'
+      : 'NULL AS epss, NULL AS epss_percentile';
 
     const sql = `
       WITH
@@ -347,6 +398,7 @@ export class SunCveQueries {
       SELECT
         c.cve_id, c.title, c.description, c.date_published, c.date_updated,
         c.exists_exploit, c.exists_commit, ${nucleiSelect},
+        ${epssSelect},
         COALESCE(s.max_score, 0) as max_score,
         cw.cwe_list, a.vendor_list, a.product_list,
         COALESCE(ra.repo_count, 0) as repo_count,
@@ -383,6 +435,9 @@ export class SunCveQueries {
         exists_nuclei: Boolean(row.exists_nuclei),
         max_score: max,
         severity: getSeverityFromScore(max),
+        epss: row.epss == null ? null : Number(row.epss),
+        epss_percentile:
+          row.epss_percentile == null ? null : Number(row.epss_percentile),
         cwe_list: (row.cwe_list as string) ?? null,
         vendor_list: (row.vendor_list as string) ?? null,
         product_list: (row.product_list as string) ?? null,
@@ -491,12 +546,18 @@ export class SunCveQueries {
       withCommit: number;
       totalRepos: number;
       inKev: number;
+      epssCritical: number;
+      epssHigh: number;
+      epssModerate: number;
+      epssLow: number;
+      epssVeryLow: number;
     }>(
       `SELECT
         (SELECT COUNT(*) FROM cves) as totalCVEs,
         (SELECT COUNT(*) FROM cves WHERE exists_exploit = 1) as withExploit,
         (SELECT COUNT(*) FROM cves WHERE exists_commit = 1) as withCommit,
         (SELECT COUNT(*) FROM cves WHERE in_kev = 1) as inKev,
+        ${this.epssBucketsSelect('sub')},
         (SELECT COUNT(*) FROM repositories) as totalRepos`
     );
     return {
@@ -504,7 +565,14 @@ export class SunCveQueries {
       totalRepos: s?.totalRepos ?? 0,
       withExploit: s?.withExploit ?? 0,
       withCommit: s?.withCommit ?? 0,
-      inKev: s?.inKev ?? 0
+      inKev: s?.inKev ?? 0,
+      epss: {
+        'very-low': s?.epssVeryLow ?? 0,
+        low: s?.epssLow ?? 0,
+        moderate: s?.epssModerate ?? 0,
+        high: s?.epssHigh ?? 0,
+        critical: s?.epssCritical ?? 0
+      }
     };
   }
 
@@ -515,16 +583,22 @@ export class SunCveQueries {
       withExploit: number;
       withCommit: number;
       totalRepos: number;
+      epssCritical: number;
+      epssHigh: number;
+      epssModerate: number;
+      epssLow: number;
+      epssVeryLow: number;
       inKev: number;
     }>(
       `WITH filtered_cves AS (
-        SELECT c.cve_id, c.exists_exploit, c.exists_commit, c.in_kev FROM cves c ${where}
+        SELECT c.cve_id, c.exists_exploit, c.exists_commit, c.in_kev${this.hasEpssCol ? ', c.epss' : ''} FROM cves c ${where}
       )
       SELECT
         COUNT(*) as totalCVEs,
         SUM(CASE WHEN exists_exploit = 1 THEN 1 ELSE 0 END) as withExploit,
         SUM(CASE WHEN exists_commit = 1 THEN 1 ELSE 0 END) as withCommit,
         SUM(CASE WHEN in_kev = 1 THEN 1 ELSE 0 END) as inKev,
+        ${this.epssBucketsSelect('agg')},
         (SELECT COUNT(DISTINCT r.fullpath)
            FROM filtered_cves fc
            JOIN cve_repositories cr ON cr.cve_id = fc.cve_id
@@ -537,7 +611,14 @@ export class SunCveQueries {
       totalRepos: s?.totalRepos ?? 0,
       withExploit: s?.withExploit ?? 0,
       withCommit: s?.withCommit ?? 0,
-      inKev: s?.inKev ?? 0
+      inKev: s?.inKev ?? 0,
+      epss: {
+        'very-low': s?.epssVeryLow ?? 0,
+        low: s?.epssLow ?? 0,
+        moderate: s?.epssModerate ?? 0,
+        high: s?.epssHigh ?? 0,
+        critical: s?.epssCritical ?? 0
+      }
     };
   }
 
@@ -914,7 +995,8 @@ export class SunCveQueries {
         (SELECT MAX(score) FROM cve_scores WHERE cve_id = c.cve_id) as score,
         c.date_published,
         c.exists_exploit, c.exists_commit, c.exists_nuclei,
-        c.in_kev, c.missing_nuclei_template
+        c.in_kev, c.missing_nuclei_template,
+        ${this.hasEpssCol ? 'c.epss, c.epss_percentile' : 'NULL AS epss, NULL AS epss_percentile'}
       FROM cves c
       WHERE c.exists_exploit = 1
         AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)

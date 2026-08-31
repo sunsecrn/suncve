@@ -67,7 +67,12 @@
     "tagCommit": "Fix commit available",
     "tagNuclei": "Nuclei template",
     "tagKev": "In CISA KEV",
-    "tagMissing": "Pending template"
+    "tagMissing": "Pending template",
+    "tagEpss": "EPSS",
+    "epssCritical": "Critical with likely exploitation",
+    "epssCriticalDescription": "The 20 highest EPSS among CVEs scoring CVSS 9.0 or above",
+    "noEpssCritical": "No critical CVEs with high EPSS",
+    "viewAllInSearch": "View all in search"
   },
   "themes": {
     "default": "Default",
@@ -228,7 +233,8 @@
       "period_all": "All",
       "period_custom": "Specific date",
       "repository": "Repository",
-      "repositoryPlaceholder": "owner/repo-name"
+      "repositoryPlaceholder": "owner/repo-name",
+      "epss": "EPSS"
     },
     "table": {
       "cveId": "CVE ID",
@@ -240,7 +246,8 @@
       "published": "Published",
       "noResults": "No results found",
       "tryDifferentFilters": "Try adjusting your filters or search term",
-      "showing": "Showing {from} to {to} of {total} results"
+      "showing": "Showing {from} to {to} of {total} results",
+      "epss": "EPSS"
     },
     "detail": {
       "hasExploit": "Exploit",
@@ -270,7 +277,8 @@
       "openExternalLink": "Open external link",
       "more": "more",
       "copyLink": "Copy Link",
-      "copied": "Copied!"
+      "copied": "Copied!",
+      "epss": "EPSS"
     }
   },
   "repositories": {
@@ -426,7 +434,9 @@
       "npmText": "Download counts from nice-registry/download-counts measure each package's popularity, and the npm registry resolves every package to its canonical repository, enriching GitHub repos with package URL and downloads.",
       "packagistTitle": "Packagist packages",
       "packagistText": "OSV Packagist export plus the Packagist API resolve each affected Composer package to its repository and total downloads, matched against the repositories from our references.",
-      "visit": "Visit repository"
+      "visit": "Visit repository",
+      "epssTitle": "EPSS Scores",
+      "epssText": "empiricalsec/epss_scores publishes current and historical EPSS scores (FIRST) — the probability that each CVE will be exploited in the next 30 days."
     },
     "contributors": {
       "badge": "Community",
@@ -514,5 +524,20 @@
     "resLicense": "MIT License",
     "sources": "Data sources",
     "srcAllSources": "View all sources"
+  },
+  "epss": {
+    "label": "EPSS",
+    "distribution": "EPSS distribution",
+    "realChance": "Exploitation likely",
+    "scoredOf": "of {total} scored",
+    "noScores": "No scored CVEs yet",
+    "levels": {
+      "critical": "Very high",
+      "high": "High",
+      "moderate": "Moderate",
+      "low": "Low",
+      "very-low": "Very low",
+      "unscored": "Unscored"
+    }
   }
 }

@@ -39,11 +39,12 @@ As CVEs são construídas e enriquecidas cruzando múltiplas fontes públicas:
 | [Wordfence Nuclei CVE](https://github.com/topscoder/nuclei-wordfence-cve) | Templates Nuclei da Wordfence (identificados pela fonte) |
 | [Missing CVE Nuclei Templates](https://github.com/edoardottt/missing-cve-nuclei-templates) | Indicador de "template pendente" (CVE sem template oficial) |
 | [CISA KEV](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) | Vulnerabilidades exploradas conhecidas — data de inclusão, prazo e uso em ransomware |
+| [EPSS Scores](https://github.com/empiricalsec/epss_scores) | [EPSS](https://www.first.org/epss/) — probabilidade de exploração nos próximos 30 dias e percentil |
 | [npm](https://www.npmjs.com) · [Packagist](https://packagist.org) · [WordPress](https://wordpress.org/plugins/) | Ecossistema do pacote, downloads e instalações ativas |
 
 ## Filtros disponíveis
 
-**Busca de CVEs:** texto (CVE, fornecedor, produto, descrição), faixa de CVSS, severidade, CWE (e categoria de vulnerabilidade), período de publicação, ecossistema (GitHub/WordPress/npm/Packagist), stars e tamanho do repositório, faixa de downloads, linguagem, e flags: tem exploit, tem repositório, tem commit de correção, tem template Nuclei, está no KEV (CISA) e template pendente (comunidade).
+**Busca de CVEs:** texto (CVE, fornecedor, produto, descrição), faixa de CVSS, severidade, CWE (e categoria de vulnerabilidade), período de publicação, ecossistema (GitHub/WordPress/npm/Packagist), stars e tamanho do repositório, faixa de downloads, linguagem, e flags: tem exploit, tem repositório, tem commit de correção, tem template Nuclei, está no KEV (CISA) e template pendente (comunidade). Também há filtro por faixa de EPSS (probabilidade de exploração) e ordenação por EPSS.
 
 **Busca de repositórios:** texto, ecossistema, linguagem, stars, tamanho, downloads, instalações ativas (WordPress) e flags: tem CVEs e tem commit de correção.
 
@@ -104,6 +105,7 @@ python scripts/create-manifest.py nuclei            # templates Nuclei
 python scripts/create-manifest.py wordfence-nuclei  # templates Nuclei da Wordfence
 python scripts/create-manifest.py missing-templates # indicador de template pendente
 python scripts/create-manifest.py kev               # catálogo CISA KEV
+python scripts/create-manifest.py epss              # scores EPSS (empiricalsec/epss_scores)
 python scripts/create-manifest.py npm               # metadados npm (downloads)
 python scripts/create-manifest.py packagist         # metadados Packagist
 ```

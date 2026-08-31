@@ -23,6 +23,7 @@ import {
   IconShieldExclamation
 } from '@tabler/icons-react';
 import { CVEDetailDrawer } from '@/features/search/components/cve-detail-drawer';
+import { EpssSignal } from '@/components/epss-signal';
 import { useCVESearch } from '@/lib/sqlite/use-cve-search';
 
 export function CriticalCVEs() {
@@ -109,6 +110,13 @@ export function CriticalCVEs() {
                     <Badge variant='destructive' className='text-xs'>
                       {cve.score?.toFixed(1) ?? '-'}
                     </Badge>
+                    <EpssSignal
+                      epss={cve.epss}
+                      percentile={cve.epss_percentile}
+                      locale={locale}
+                      label={t('tagEpss')}
+                      showValue
+                    />
                     <div className='flex flex-nowrap gap-1'>
                       {cve.exists_exploit ? (
                         <Badge

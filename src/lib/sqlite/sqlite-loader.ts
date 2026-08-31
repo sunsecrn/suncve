@@ -540,7 +540,11 @@ function applyClientSchemaMigrations(db: SqlJsDatabase): void {
     'ALTER TABLE repositories ADD COLUMN package_url TEXT',
     // Enriquecimento Nuclei: flag + lista de templates relacionados por CVE.
     'ALTER TABLE cves ADD COLUMN exists_nuclei BOOLEAN DEFAULT 0',
-    'ALTER TABLE cves ADD COLUMN list_nuclei TEXT'
+    'ALTER TABLE cves ADD COLUMN list_nuclei TEXT',
+    // EPSS (empiricalsec/epss_scores): probabilidade de exploração em 30 dias.
+    'ALTER TABLE cves ADD COLUMN epss REAL',
+    'ALTER TABLE cves ADD COLUMN epss_percentile REAL',
+    'ALTER TABLE cves ADD COLUMN epss_date TEXT'
   ];
   for (const sql of addColumns) {
     try {

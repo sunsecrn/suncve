@@ -44,6 +44,9 @@ import {
   type SearchFilters,
   type Severity,
   type DatePeriod,
+  type EpssFilterLevel,
+  EPSS_LEVELS,
+  EPSS_LEVEL_META,
   defaultFilters
 } from '@/features/search/types';
 import { CWE_CATEGORIES, getCWEDisplay } from '@/features/search/cwe-data';
@@ -69,6 +72,7 @@ export function FiltersPanel({
   isSearching = false
 }: FiltersPanelProps) {
   const t = useTranslations('search.filters');
+  const tEpss = useTranslations('epss');
   const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [cweOpen, setCweOpen] = useState(false);
@@ -98,6 +102,16 @@ export function FiltersPanel({
         ? filters.severity.filter((s) => s !== severity)
         : [...filters.severity, severity];
       onFiltersChange({ ...filters, severity: newSeverities });
+    },
+    [filters, onFiltersChange]
+  );
+
+  const handleEpssToggle = useCallback(
+    (level: EpssFilterLevel) => {
+      const newLevels = filters.epssLevel.includes(level)
+        ? filters.epssLevel.filter((l) => l !== level)
+        : [...filters.epssLevel, level];
+      onFiltersChange({ ...filters, epssLevel: newLevels });
     },
     [filters, onFiltersChange]
   );
@@ -303,6 +317,30 @@ export function FiltersPanel({
                   </Badge>
                 )
               )}
+            </div>
+          </div>
+
+          {/* EPSS — probabilidade de exploração em 30 dias */}
+          <div className='space-y-3'>
+            <Label>{tEpss('label')}</Label>
+            <div className='flex flex-wrap gap-2'>
+              {EPSS_LEVELS.map((level) => {
+                const active = filters.epssLevel.includes(level);
+                const levelLabel = tEpss(`levels.${level}`);
+                return (
+                  <Badge
+                    key={level}
+                    variant={active ? 'default' : 'outline'}
+                    className={cn(
+                      'cursor-pointer transition-colors',
+                      active && EPSS_LEVEL_META[level].badgeClass
+                    )}
+                    onClick={() => handleEpssToggle(level)}
+                  >
+                    {levelLabel}
+                  </Badge>
+                );
+              })}
             </div>
           </div>
 
@@ -721,6 +759,7 @@ function countActiveFilters(filters: SearchFilters): number {
   if (filters.query) count++;
   if (filters.cvssMin > 0 || filters.cvssMax < 10) count++;
   if (filters.severity.length > 0) count++;
+  if (filters.epssLevel.length > 0) count++;
   if (filters.cwes.length > 0) count++;
   if (filters.cweCategory) count++;
   if (filters.hasExploit !== null) count++;

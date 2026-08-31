@@ -67,7 +67,12 @@
     "tagCommit": "Commit de correção disponível",
     "tagNuclei": "Template Nuclei",
     "tagKev": "No CISA KEV",
-    "tagMissing": "Template pendente"
+    "tagMissing": "Template pendente",
+    "tagEpss": "EPSS",
+    "epssCritical": "Críticas com exploração provável",
+    "epssCriticalDescription": "As 20 de maior EPSS entre as de CVSS 9.0 ou mais",
+    "noEpssCritical": "Nenhuma CVE crítica com EPSS alto",
+    "viewAllInSearch": "Ver todas na busca"
   },
   "themes": {
     "default": "Padrão",
@@ -142,10 +147,6 @@
     "cveResults": {
       "title": "Resultados da Busca",
       "description": "Lista de CVEs encontradas. Clique em uma linha para ver detalhes completos. Use os cabeçalhos para ordenar."
-    },
-    "cveDetails": {
-      "title": "Detalhes da CVE",
-      "description": "Veja informações completas: scores CVSS, CWEs, produtos afetados, repositórios relacionados, exploits e commits de correção."
     },
     "cveDetails": {
       "title": "Detalhes do CVE",
@@ -232,7 +233,8 @@
       "period_all": "Todos",
       "period_custom": "Data específica",
       "repository": "Repositório",
-      "repositoryPlaceholder": "owner/repo-name"
+      "repositoryPlaceholder": "owner/repo-name",
+      "epss": "EPSS"
     },
     "table": {
       "cveId": "CVE ID",
@@ -244,7 +246,8 @@
       "published": "Publicado",
       "noResults": "Nenhum resultado encontrado",
       "tryDifferentFilters": "Tente ajustar os filtros ou termo de busca",
-      "showing": "Mostrando {from} até {to} de {total} resultados"
+      "showing": "Mostrando {from} até {to} de {total} resultados",
+      "epss": "EPSS"
     },
     "detail": {
       "hasExploit": "Exploit",
@@ -274,7 +277,8 @@
       "openExternalLink": "Abrir link externo",
       "more": "mais",
       "copyLink": "Copiar Link",
-      "copied": "Copiado!"
+      "copied": "Copiado!",
+      "epss": "EPSS"
     }
   },
   "repositories": {
@@ -430,7 +434,9 @@
       "npmText": "As contagens de download de nice-registry/download-counts medem a popularidade de cada pacote, e o registro do npm resolve cada pacote ao seu repositório canônico, enriquecendo repos do GitHub com URL do pacote e downloads.",
       "packagistTitle": "Pacotes Packagist",
       "packagistText": "O export OSV de Packagist e a API do Packagist resolvem cada pacote Composer afetado para o seu repositório e total de downloads, cruzados com os repositórios das nossas referências.",
-      "visit": "Visitar repositório"
+      "visit": "Visitar repositório",
+      "epssTitle": "EPSS Scores",
+      "epssText": "empiricalsec/epss_scores publica os scores atuais e históricos do EPSS (FIRST), a probabilidade de cada CVE ser explorada nos próximos 30 dias."
     },
     "contributors": {
       "badge": "Comunidade",
@@ -518,5 +524,20 @@
     "resLicense": "Licença MIT",
     "sources": "Fontes de dados",
     "srcAllSources": "Ver todas as fontes"
+  },
+  "epss": {
+    "label": "EPSS",
+    "distribution": "Distribuição EPSS",
+    "realChance": "Exploração provável",
+    "scoredOf": "de {total} com score",
+    "noScores": "Nenhuma com score ainda",
+    "levels": {
+      "critical": "Muito alto",
+      "high": "Alto",
+      "moderate": "Moderado",
+      "low": "Baixo",
+      "very-low": "Muito baixo",
+      "unscored": "Sem score"
+    }
   }
 }
