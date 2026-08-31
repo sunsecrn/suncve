@@ -16,6 +16,7 @@ import {
   type CriticalCVEWithPOC
 } from '@/lib/sqlite/use-dashboard-stats';
 import {
+  IconBug,
   IconSkull,
   IconGitCommit,
   IconTargetArrow,
@@ -26,17 +27,20 @@ import { CVEDetailDrawer } from '@/features/search/components/cve-detail-drawer'
 import { EpssSignal } from '@/components/epss-signal';
 import { useCVESearch } from '@/lib/sqlite/use-cve-search';
 
-const LIMIT = 20;
+const LIMIT = 15;
+const PER_COLUMN = 5;
 
 // Reproduz exatamente o filtro da lista na busca: o bucket 'critical' é
 // epss >= 0.7, e cvssMin vira IN (SELECT cve_id FROM cve_scores WHERE score >= 9).
-const SEARCH_HREF =
-  '/dashboard/search?epss=critical&cvssMin=9&sort=epss&order=desc';
+// Sem sort na URL: o padrão da busca já é data de publicação decrescente,
+// a mesma ordem da faixa.
+const SEARCH_HREF = '/dashboard/search?epss=critical&cvssMin=9';
 
 /**
  * Faixa do dashboard com a fila de "corrija primeiro": CVEs graves (CVSS 9.0+)
- * que o EPSS aponta como quase certas de serem exploradas (>= 70%), ordenadas
- * pela probabilidade.
+ * que o EPSS aponta como quase certas de serem exploradas (>= 70%), da mais
+ * recente para a mais antiga. Mesmo desenho de linha do card "CVEs Críticas
+ * com Exploit", em três colunas de cinco separadas por réguas.
  */
 export function EpssCriticalCVEs() {
   const t = useTranslations('charts');
@@ -82,6 +86,12 @@ export function EpssCriticalCVEs() {
     });
   };
 
+  // Colunas com a sequência preservada: 1-5, 6-10, 11-15.
+  const columns: CriticalCVEWithPOC[][] = [];
+  for (let i = 0; i < cves.length; i += PER_COLUMN) {
+    columns.push(cves.slice(i, i + PER_COLUMN));
+  }
+
   return (
     <Card className='h-full'>
       <CardHeader>
@@ -98,80 +108,91 @@ export function EpssCriticalCVEs() {
           </div>
         ) : (
           <>
-            <div className='max-h-[420px] space-y-1 overflow-y-auto pr-1'>
-              {cves.map((cve) => (
+            <div className='divide-border grid grid-cols-1 divide-y lg:grid-cols-3 lg:divide-x lg:divide-y-0'>
+              {columns.map((column, columnIndex) => (
                 <div
-                  key={cve.cve_id}
-                  className='hover:bg-muted/50 flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 transition-colors'
-                  onClick={() => handleCVEClick(cve.cve_id)}
+                  key={columnIndex}
+                  className='space-y-4 py-4 first:pt-0 last:pb-0 lg:px-6 lg:py-0 lg:first:pl-0 lg:last:pr-0'
                 >
-                  <p className='w-[130px] shrink-0 font-mono text-sm font-medium'>
-                    {cve.cve_id}
-                  </p>
-                  <Badge variant='destructive' className='shrink-0 text-xs'>
-                    {cve.score?.toFixed(1) ?? '-'}
-                  </Badge>
-                  <EpssSignal
-                    epss={cve.epss}
-                    percentile={cve.epss_percentile}
-                    locale={locale}
-                    label={t('tagEpss')}
-                    className='w-[86px] shrink-0'
-                    showValue
-                  />
-                  {/* largura fixa: sem ela o titulo comeca num x diferente
-                      em cada linha, conforme quantas flags a CVE tem */}
-                  <div className='flex w-[104px] shrink-0 flex-nowrap gap-1'>
-                    {cve.exists_exploit ? (
-                      <Badge
-                        variant='destructive'
-                        className='px-1'
-                        title={t('tagExploit')}
-                      >
-                        <IconSkull className='h-3 w-3' />
-                      </Badge>
-                    ) : null}
-                    {cve.exists_commit ? (
-                      <Badge
-                        variant='secondary'
-                        className='bg-green-500/20 px-1 text-green-700 dark:text-green-400'
-                        title={t('tagCommit')}
-                      >
-                        <IconGitCommit className='h-3 w-3' />
-                      </Badge>
-                    ) : null}
-                    {cve.exists_nuclei ? (
-                      <Badge
-                        variant='secondary'
-                        className='bg-cyan-500/20 px-1 text-cyan-700 dark:text-cyan-400'
-                        title={t('tagNuclei')}
-                      >
-                        <IconTargetArrow className='h-3 w-3' />
-                      </Badge>
-                    ) : null}
-                    {cve.in_kev ? (
-                      <Badge
-                        variant='secondary'
-                        className='bg-amber-500/20 px-1 text-amber-700 dark:text-amber-400'
-                        title={t('tagKev')}
-                      >
-                        <IconShieldExclamation className='h-3 w-3' />
-                      </Badge>
-                    ) : null}
-                  </div>
-                  <p className='text-muted-foreground min-w-0 flex-1 truncate text-xs'>
-                    {cve.title || cve.description || '-'}
-                  </p>
-                  <div className='text-muted-foreground hidden shrink-0 text-xs whitespace-nowrap sm:block'>
-                    {formatDate(cve.date_published)}
-                  </div>
+                  {column.map((cve) => (
+                    <div
+                      key={cve.cve_id}
+                      className='hover:bg-muted/50 -mx-2 flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 transition-colors'
+                      onClick={() => handleCVEClick(cve.cve_id)}
+                    >
+                      <div className='flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30'>
+                        <IconBug className='h-4 w-4 text-red-600 dark:text-red-400' />
+                      </div>
+                      <div className='min-w-0 flex-1 space-y-1'>
+                        <div className='flex flex-wrap items-center gap-2'>
+                          <p className='font-mono text-sm leading-none font-medium'>
+                            {cve.cve_id}
+                          </p>
+                          <Badge variant='destructive' className='text-xs'>
+                            {cve.score?.toFixed(1) ?? '-'}
+                          </Badge>
+                          <EpssSignal
+                            epss={cve.epss}
+                            percentile={cve.epss_percentile}
+                            locale={locale}
+                            label={t('tagEpss')}
+                            showValue
+                          />
+                          <div className='flex flex-nowrap gap-1'>
+                            {cve.exists_exploit ? (
+                              <Badge
+                                variant='destructive'
+                                className='px-1'
+                                title={t('tagExploit')}
+                              >
+                                <IconSkull className='h-3 w-3' />
+                              </Badge>
+                            ) : null}
+                            {cve.exists_commit ? (
+                              <Badge
+                                variant='secondary'
+                                className='bg-green-500/20 px-1 text-green-700 dark:text-green-400'
+                                title={t('tagCommit')}
+                              >
+                                <IconGitCommit className='h-3 w-3' />
+                              </Badge>
+                            ) : null}
+                            {cve.exists_nuclei ? (
+                              <Badge
+                                variant='secondary'
+                                className='bg-cyan-500/20 px-1 text-cyan-700 dark:text-cyan-400'
+                                title={t('tagNuclei')}
+                              >
+                                <IconTargetArrow className='h-3 w-3' />
+                              </Badge>
+                            ) : null}
+                            {cve.in_kev ? (
+                              <Badge
+                                variant='secondary'
+                                className='bg-amber-500/20 px-1 text-amber-700 dark:text-amber-400'
+                                title={t('tagKev')}
+                              >
+                                <IconShieldExclamation className='h-3 w-3' />
+                              </Badge>
+                            ) : null}
+                          </div>
+                        </div>
+                        <p className='text-muted-foreground truncate text-xs'>
+                          {cve.title || cve.description || '-'}
+                        </p>
+                      </div>
+                      <div className='text-muted-foreground text-xs whitespace-nowrap'>
+                        {formatDate(cve.date_published)}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
             <button
               type='button'
               onClick={() => router.push(SEARCH_HREF)}
-              className='text-muted-foreground hover:text-foreground mt-3 flex items-center gap-1.5 text-sm transition-colors'
+              className='text-muted-foreground hover:text-foreground mt-4 flex items-center gap-1.5 text-sm transition-colors'
             >
               {t('viewAllInSearch')}
               <IconArrowRight className='h-4 w-4' />

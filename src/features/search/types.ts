@@ -211,20 +211,17 @@ export const EPSS_LEVELS: EpssFilterLevel[] = [
   'very-low'
 ];
 
-// 0.97812 -> "97,8%" (pt-BR) / "97.8%" (en). Os extremos ganham tratamento
-// próprio: abaixo de 0,1% evitaria "0.0%", e o topo (0.99999, o maior score que
-// o EPSS publica) arredondaria para "100%" — afirmar certeza numa probabilidade
-// que por definição nunca chega a 1.
+// 0.42371 -> "42%". Porcentagem inteira em todo lugar; só o zero enganoso tem
+// piso: 0.002 arredondaria para "0%", que leria como risco nenhum.
 export function formatEpss(
   epss: number | null | undefined,
   locale = 'en'
 ): string {
   if (epss === null || epss === undefined) return '—';
-  if (epss > 0 && epss < 0.001) return '< 0.1%';
-  if (epss < 1 && epss > 0.999) return '> 99.9%';
+  if (epss > 0 && epss < 0.005) return '< 1%';
   return new Intl.NumberFormat(locale, {
     style: 'percent',
-    maximumFractionDigits: 1
+    maximumFractionDigits: 0
   }).format(epss);
 }
 

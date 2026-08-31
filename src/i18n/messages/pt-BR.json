@@ -70,7 +70,7 @@
     "tagMissing": "Template pendente",
     "tagEpss": "EPSS",
     "epssCritical": "Críticas com exploração provável",
-    "epssCriticalDescription": "As 20 de maior EPSS entre as de CVSS 9.0 ou mais",
+    "epssCriticalDescription": "As 15 mais recentes com CVSS 9.0+ e EPSS de 70% ou mais",
     "noEpssCritical": "Nenhuma CVE crítica com EPSS alto",
     "viewAllInSearch": "Ver todas na busca"
   },

@@ -70,7 +70,7 @@
     "tagMissing": "Pending template",
     "tagEpss": "EPSS",
     "epssCritical": "Critical with likely exploitation",
-    "epssCriticalDescription": "The 20 highest EPSS among CVEs scoring CVSS 9.0 or above",
+    "epssCriticalDescription": "The 15 most recent with CVSS 9.0+ and EPSS of 70% or higher",
     "noEpssCritical": "No critical CVEs with high EPSS",
     "viewAllInSearch": "View all in search"
   },

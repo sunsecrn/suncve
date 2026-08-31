@@ -82,7 +82,7 @@ export function EpssDistribution({
     >
       {present.map((level, i) => {
         const count = counts[level] ?? 0;
-        const share = ((count / total) * 100).toFixed(1);
+        const share = Math.round((count / total) * 100);
         const title = `${levelLabels?.[level] ?? level}: ${nf.format(count)} (${share}%)`;
 
         return onSelect ? (

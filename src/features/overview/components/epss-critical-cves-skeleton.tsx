@@ -21,19 +21,29 @@ export function EpssCriticalCVEsSkeleton() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className='space-y-1'>
-          {[...Array(6)].map((_, index) => (
-            <div key={index} className='flex items-center gap-3 px-2 py-2'>
-              <Skeleton className='h-4 w-[130px] shrink-0' />
-              <Skeleton className='h-5 w-10 shrink-0 rounded-full' />
-              <Skeleton className='h-5 w-[86px] shrink-0' />
-              <Skeleton className='h-5 w-14 shrink-0' />
-              <Skeleton className='h-3 flex-1' />
-              <Skeleton className='hidden h-3 w-24 shrink-0 sm:block' />
+        <div className='divide-border grid grid-cols-1 divide-y lg:grid-cols-3 lg:divide-x lg:divide-y-0'>
+          {[...Array(3)].map((_, column) => (
+            <div
+              key={column}
+              className='space-y-4 py-4 first:pt-0 last:pb-0 lg:px-6 lg:py-0 lg:first:pl-0 lg:last:pr-0'
+            >
+              {[...Array(5)].map((_, row) => (
+                <div key={row} className='flex items-start gap-3 py-2'>
+                  <Skeleton className='h-9 w-9 shrink-0 rounded-full' />
+                  <div className='flex-1 space-y-2'>
+                    <div className='flex items-center gap-2'>
+                      <Skeleton className='h-4 w-28' />
+                      <Skeleton className='h-5 w-10' />
+                    </div>
+                    <Skeleton className='h-3 w-full' />
+                  </div>
+                  <Skeleton className='h-3 w-12' />
+                </div>
+              ))}
             </div>
           ))}
         </div>
-        <Skeleton className='mt-3 h-4 w-40' />
+        <Skeleton className='mt-4 h-4 w-40' />
       </CardContent>
     </Card>
   );

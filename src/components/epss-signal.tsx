@@ -61,7 +61,7 @@ export function EpssSignal({
       : [
           `${label} ${value}`,
           percentile !== null && percentile !== undefined
-            ? `p${(percentile * 100).toFixed(1)}`
+            ? `p${Math.round(percentile * 100)}`
             : null,
           date || null
         ]

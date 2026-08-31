@@ -69,7 +69,9 @@ export function OverviewStatsCards() {
   const epssScored =
     epss['very-low'] + epss.low + epss.moderate + epss.high + epss.critical;
   const epssPercent =
-    epssScored > 0 ? ((epssRealChance / epssScored) * 100).toFixed(1) : '0';
+    epssScored > 0
+      ? String(Math.round((epssRealChance / epssScored) * 100))
+      : '0';
   const nf = new Intl.NumberFormat(locale);
 
   return (

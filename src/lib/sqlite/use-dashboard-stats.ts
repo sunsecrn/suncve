@@ -253,14 +253,14 @@ export function useDashboardStats() {
   }, [isReady, executeQuery]);
 
   // A fila de "corrija primeiro": grave se explorada (CVSS 9.0+) e quase certa
-  // de ser explorada (EPSS >= 70%, a faixa do topo da escala). Ordena por EPSS,
-  // porque é a probabilidade que decide a ordem da fila — o CVSS aqui só define
-  // quem entra nela.
+  // de ser explorada (EPSS >= 70%, a faixa do topo da escala). Ordena por data
+  // de publicação — o que apareceu por último nesse cruzamento — e EPSS/CVSS
+  // são só o critério de entrada.
   //
   // Cerca de metade das CVEs de EPSS >= 70% tem CVSS abaixo de 9 e fica de fora
   // por construção; quem quiser essas usa o filtro de EPSS na busca.
   const getCriticalHighEpssCVEs = useCallback(
-    (limit = 20): CriticalCVEWithPOC[] => {
+    (limit = 15): CriticalCVEWithPOC[] => {
       if (!isReady) {
         return [];
       }
@@ -283,7 +283,7 @@ export function useDashboardStats() {
       FROM cves c
       WHERE c.epss >= 0.7
         AND EXISTS (SELECT 1 FROM cve_scores cs WHERE cs.cve_id = c.cve_id AND cs.score >= 9.0)
-      ORDER BY c.epss DESC
+      ORDER BY c.date_published DESC
       LIMIT ?
     `,
         [limit]
